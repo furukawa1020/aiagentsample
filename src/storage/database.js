@@ -27,7 +27,79 @@ function initDatabase() {
   // テーブル作成
   createTables();
 
-  console.log('✅ データベース初期化完了');
+  console.log('✅ Research Memory テーブルを作成しました');
+}
+
+/**
+ * Phase 3: Social Interface テーブルの作成
+ */
+function createSocialInterfaceTables() {
+  // deadlines テーブル
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS deadlines (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      title TEXT NOT NULL,
+      description TEXT,
+      due_date TEXT NOT NULL,
+      category TEXT DEFAULT 'other',
+      priority_score REAL DEFAULT 0,
+      status TEXT DEFAULT 'pending',
+      created_at TEXT DEFAULT (datetime('now', 'localtime')),
+      completed_at TEXT,
+      CHECK(category IN ('scholarship', 'grant', 'submission', 'meeting', 'report', 'other')),
+      CHECK(status IN ('pending', 'in_progress', 'completed', 'cancelled'))
+    );
+  `);
+
+  // documents テーブル
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS documents (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      deadline_id INTEGER,
+      title TEXT NOT NULL,
+      doc_type TEXT NOT NULL,
+      content TEXT NOT NULL,
+      status TEXT DEFAULT 'draft',
+      created_at TEXT DEFAULT (datetime('now', 'localtime')),
+      submitted_at TEXT,
+      FOREIGN KEY (deadline_id) REFERENCES deadlines(id),
+      CHECK(doc_type IN ('application', 'email', 'report', 'proposal', 'other')),
+      CHECK(status IN ('draft', 'review', 'submitted'))
+    );
+  `);
+
+  // contacts テーブル
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS contacts (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      role TEXT,
+      email TEXT,
+      phone TEXT,
+      organization TEXT,
+      notes TEXT,
+      last_contact TEXT,
+      created_at TEXT DEFAULT (datetime('now', 'localtime'))
+    );
+  `);
+
+  // emergency_contacts テーブル
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS emergency_contacts (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      phone TEXT NOT NULL,
+      relationship TEXT,
+      notes TEXT,
+      is_active INTEGER DEFAULT 1,
+      created_at TEXT DEFAULT (datetime('now', 'localtime'))
+    );
+  `);
+
+  console.log('✅ Social Interface テーブルを作成しました');
+}
+
+/**
   return db;
 }
 
@@ -80,6 +152,9 @@ function createTables() {
 
   // Phase 2: Research Memory テーブル
   createResearchMemoryTables();
+
+  // Phase 3: Social Interface テーブル
+  createSocialInterfaceTables();
 
   // デフォルト閾値の設定
   initDefaultThresholds();

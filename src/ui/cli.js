@@ -23,6 +23,12 @@ const {
 } = require('../modules/research-memory/snapshot-generator');
 const { getAllFragments, getActiveCoreThemes } = require('../storage/research-models');
 
+// Social Interface
+const { getTodayFocusTask, addDeadline, completeDeadline, startDeadline, getDeadlineStats } = require('../modules/social-interface/deadline-manager');
+const { generateApplicationDraft, generateEmailDraft } = require('../modules/social-interface/document-generator');
+const { addContact, listContacts, addEmergencyContact, showEmergencyContacts, showPublicSupportResources } = require('../modules/social-interface/contact-manager');
+const { getPendingDeadlines, getDocumentsByDeadline } = require('../storage/social-models');
+
 /**
  * メインメニュー
  */
@@ -38,11 +44,19 @@ async function showMainMenu() {
         { name: '📊 今日の振り返りを見る', value: 'daily_summary' },
         { name: '📈 週の振り返りを見る', value: 'weekly_summary' },
         new inquirer.Separator('=== 研究 ==='),
-        { name: '� 思考の断片を記録する', value: 'add_fragment' },
+        { name: '💭 思考の断片を記録する', value: 'add_fragment' },
         { name: '🔍 今日の問いを見る', value: 'show_question' },
         { name: '🌟 核テーマを確認する', value: 'show_themes' },
         { name: '📄 ドラフトを生成する', value: 'generate_draft' },
         { name: '🔄 テーマを更新する', value: 'update_themes' },
+        new inquirer.Separator('=== 社会接続 ==='),
+        { name: '🎯 今日やるべきこと', value: 'today_task' },
+        { name: '📅 締め切りを追加する', value: 'add_deadline' },
+        { name: '📋 締め切り一覧', value: 'list_deadlines' },
+        { name: '✍️ 申請書を作る', value: 'generate_application' },
+        { name: '✉️ メール骨子を作る', value: 'generate_email' },
+        { name: '👥 連絡先管理', value: 'manage_contacts' },
+        { name: '🆘 緊急連絡先', value: 'emergency' },
         new inquirer.Separator('==='),
         { name: '👋 終了する', value: 'exit' }
       ]
