@@ -78,8 +78,73 @@ function createTables() {
     );
   `);
 
+  // Phase 2: Research Memory テーブル
+  createResearchMemoryTables();
+
   // デフォルト閾値の設定
   initDefaultThresholds();
+}
+
+/**
+ * Phase 2: Research Memory テーブルの作成
+ */
+function createResearchMemoryTables() {
+  // research_fragments テーブル
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS research_fragments (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER DEFAULT 1,
+      content TEXT NOT NULL,
+      emotion_tag TEXT,
+      context TEXT,
+      source_type TEXT DEFAULT 'manual',
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      last_shown TIMESTAMP,
+      importance_score REAL DEFAULT 0.5
+    );
+  `);
+
+  // core_themes テーブル
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS core_themes (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER DEFAULT 1,
+      theme_name TEXT NOT NULL,
+      theme_description TEXT,
+      fragment_ids TEXT,
+      frequency INTEGER DEFAULT 1,
+      importance_score REAL DEFAULT 0.5,
+      first_appeared TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      last_shown TIMESTAMP,
+      is_active BOOLEAN DEFAULT 1
+    );
+  `);
+
+  // theme_snapshots テーブル
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS theme_snapshots (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER DEFAULT 1,
+      theme_id INTEGER,
+      snapshot_type TEXT,
+      generated_text TEXT NOT NULL,
+      fragment_refs TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (theme_id) REFERENCES core_themes(id)
+    );
+  `);
+
+  // fragment_tags テーブル
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS fragment_tags (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      fragment_id INTEGER,
+      tag_name TEXT NOT NULL,
+      tag_value TEXT,
+      FOREIGN KEY (fragment_id) REFERENCES research_fragments(id)
+    );
+  `);
 }
 
 /**
