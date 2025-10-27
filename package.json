@@ -1,0 +1,24 @@
+{
+  "name": "arc-agent",
+  "version": "0.1.0",
+  "description": "ARC (Adaptive Research Companion) - 脆い状況にいる個人のための常駐型AIエージェント",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "node src/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "ai",
+    "agent",
+    "research",
+    "mental-health",
+    "life-support"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {},
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
