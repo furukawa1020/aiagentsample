@@ -11,6 +11,18 @@ const { generateIntervention, displayIntervention } = require('../modules/life-s
 const { generateDailySummary, generateWeeklySummary } = require('../modules/life-support/summary');
 const { getTodayLifeLog } = require('../storage/models');
 
+// Research Memory
+const { collectFragment, validateFragment, emotionToEnglish } = require('../modules/research-memory/fragment-collector');
+const { extractConcepts } = require('../modules/research-memory/concept-extractor');
+const { identifyCoreThemes } = require('../modules/research-memory/theme-identifier');
+const { morningQuestionReminder, weeklyReview } = require('../modules/research-memory/re-presentation');
+const { 
+  generatePaperBackground, 
+  generateGrantProposal, 
+  generateThemeSummary 
+} = require('../modules/research-memory/snapshot-generator');
+const { getAllFragments, getActiveCoreThemes } = require('../storage/research-models');
+
 /**
  * メインメニュー
  */
@@ -21,10 +33,17 @@ async function showMainMenu() {
       name: 'action',
       message: '何をしますか？',
       choices: [
+        new inquirer.Separator('=== 生活 ==='),
         { name: '📝 今日の体調を記録する', value: 'log' },
         { name: '📊 今日の振り返りを見る', value: 'daily_summary' },
         { name: '📈 週の振り返りを見る', value: 'weekly_summary' },
-        { name: '💬 自由にメモする', value: 'free_note' },
+        new inquirer.Separator('=== 研究 ==='),
+        { name: '� 思考の断片を記録する', value: 'add_fragment' },
+        { name: '🔍 今日の問いを見る', value: 'show_question' },
+        { name: '🌟 核テーマを確認する', value: 'show_themes' },
+        { name: '📄 ドラフトを生成する', value: 'generate_draft' },
+        { name: '🔄 テーマを更新する', value: 'update_themes' },
+        new inquirer.Separator('==='),
         { name: '👋 終了する', value: 'exit' }
       ]
     }
@@ -208,12 +227,256 @@ async function start() {
       case 'free_note':
         await inputFreeNote();
         break;
+      case 'add_fragment':
+        await addResearchFragment();
+        break;
+      case 'show_question':
+        await showTodaysQuestion();
+        break;
+      case 'show_themes':
+        await showCoreThemes();
+        break;
+      case 'generate_draft':
+        await generateDraftMenu();
+        break;
+      case 'update_themes':
+        await updateThemes();
+        break;
       case 'exit':
         console.log(chalk.cyan('\n👋 またお会いしましょう。あなたの問いはここに残っています。\n'));
         running = false;
         break;
     }
   }
+}
+
+/**
+ * 研究断片の追加
+ */
+async function addResearchFragment() {
+  console.log(chalk.cyan('\n💭 思考の断片を記録します\n'));
+
+  const questions = [
+    {
+      type: 'editor',
+      name: 'content',
+      message: '思考・アイデア・違和感など、何でも自由に:',
+      default: '',
+      waitUserInput: false
+    },
+    {
+      type: 'list',
+      name: 'emotion',
+      message: 'この思考に伴う感情は？',
+      choices: [
+        { name: '怒り（これはおかしい）', value: 'anger' },
+        { name: '違和感（何か引っかかる）', value: 'discomfort' },
+        { name: '驚き（予想外だった）', value: 'surprise' },
+        { name: '喜び（面白い発見）', value: 'joy' },
+        { name: 'なし・中立', value: 'neutral' }
+      ]
+    },
+    {
+      type: 'input',
+      name: 'context',
+      message: 'コンテキスト（誰に/どこで/いつ など、オプション）:',
+      default: ''
+    }
+  ];
+
+  const answers = await inquirer.prompt(questions);
+
+  if (!answers.content || answers.content.trim().length === 0) {
+    console.log(chalk.yellow('\n内容が空のため、キャンセルしました。\n'));
+    return;
+  }
+
+  const data = {
+    content: answers.content.trim(),
+    emotion_tag: emotionToEnglish(answers.emotion) || answers.emotion,
+    context: answers.context || null
+  };
+
+  const validation = validateFragment(data);
+  if (!validation.isValid) {
+    console.log(chalk.red('\n❌ 入力エラー:'));
+    validation.errors.forEach(err => console.log(chalk.red(`  - ${err}`)));
+    return;
+  }
+
+  const fragmentId = await collectFragment(data);
+  console.log(chalk.green('\n✅ 思考の断片を記録しました\n'));
+
+  // 概念抽出を試みる
+  const { confirm } = await inquirer.prompt([
+    {
+      type: 'confirm',
+      name: 'confirm',
+      message: 'この断片から概念を抽出しますか？（LLM使用）',
+      default: true
+    }
+  ]);
+
+  if (confirm) {
+    try {
+      console.log(chalk.cyan('概念を抽出中...'));
+      await extractConcepts({ id: fragmentId, ...data });
+      console.log(chalk.green('✅ 概念抽出完了\n'));
+    } catch (error) {
+      console.log(chalk.yellow('概念抽出中にエラーが発生しましたが、断片は保存されています。\n'));
+    }
+  }
+}
+
+/**
+ * 今日の問いを表示
+ */
+async function showTodaysQuestion() {
+  console.log(chalk.cyan('\n🌟 今日の問い\n'));
+
+  const reminder = morningQuestionReminder();
+
+  if (!reminder.hasQuestion) {
+    console.log(chalk.yellow(reminder.message));
+  } else {
+    console.log(chalk.cyan('='.repeat(60)));
+    console.log(reminder.message);
+    console.log(chalk.cyan('='.repeat(60)));
+  }
+
+  console.log('');
+
+  await inquirer.prompt([
+    {
+      type: 'input',
+      name: 'continue',
+      message: 'Enterキーでメニューに戻ります...'
+    }
+  ]);
+}
+
+/**
+ * 核テーマ一覧の表示
+ */
+async function showCoreThemes() {
+  console.log(chalk.cyan('\n🌟 あなたの核テーマ\n'));
+
+  const themes = getActiveCoreThemes();
+
+  if (themes.length === 0) {
+    console.log(chalk.yellow('まだテーマが特定されていません。'));
+    console.log('思考の断片を記録し、「テーマを更新する」を実行してください。\n');
+  } else {
+    themes.forEach((theme, idx) => {
+      console.log(chalk.bold(`${idx + 1}. ${theme.theme_name}`));
+      console.log(`   ${theme.theme_description}`);
+      console.log(chalk.gray(`   関連断片: ${theme.fragment_ids.length}件 | 重要度: ${(theme.importance_score * 100).toFixed(0)}%`));
+      console.log('');
+    });
+  }
+
+  await inquirer.prompt([
+    {
+      type: 'input',
+      name: 'continue',
+      message: 'Enterキーでメニューに戻ります...'
+    }
+  ]);
+}
+
+/**
+ * ドラフト生成メニュー
+ */
+async function generateDraftMenu() {
+  const themes = getActiveCoreThemes();
+
+  if (themes.length === 0) {
+    console.log(chalk.yellow('\nまだテーマが特定されていません。\n'));
+    return;
+  }
+
+  const { draftType } = await inquirer.prompt([
+    {
+      type: 'list',
+      name: 'draftType',
+      message: '何を生成しますか？',
+      choices: [
+        { name: '📄 論文背景（背景と目的）', value: 'paper' },
+        { name: '📝 研究計画書（助成金申請用）', value: 'grant' },
+        { name: '📋 テーマ要約', value: 'summary' }
+      ]
+    }
+  ]);
+
+  console.log(chalk.cyan('\n生成中...（10〜30秒かかる場合があります）\n'));
+
+  try {
+    let result;
+    if (draftType === 'paper') {
+      result = await generatePaperBackground();
+    } else if (draftType === 'grant') {
+      result = await generateGrantProposal();
+    } else {
+      result = await generateThemeSummary();
+    }
+
+    console.log(chalk.cyan('='.repeat(60)));
+    console.log(chalk.bold(`\n${result.theme_name}\n`));
+    console.log(result.text);
+    console.log('\n' + chalk.cyan('='.repeat(60)));
+    console.log(chalk.gray(`\nスナップショットID: ${result.snapshot_id}`));
+    console.log(chalk.gray('このドラフトは保存されました。\n'));
+  } catch (error) {
+    console.log(chalk.red(`\n❌ 生成エラー: ${error.message}\n`));
+  }
+
+  await inquirer.prompt([
+    {
+      type: 'input',
+      name: 'continue',
+      message: 'Enterキーでメニューに戻ります...'
+    }
+  ]);
+}
+
+/**
+ * テーマ更新
+ */
+async function updateThemes() {
+  console.log(chalk.cyan('\n🔄 核テーマを更新します\n'));
+
+  const fragments = getAllFragments();
+
+  if (fragments.length < 3) {
+    console.log(chalk.yellow('断片が少なすぎます（最低3件必要）。\n'));
+    return;
+  }
+
+  console.log(chalk.cyan('分析中...（30秒〜1分かかる場合があります）\n'));
+
+  try {
+    const newThemes = await identifyCoreThemes();
+
+    if (newThemes.length > 0) {
+      console.log(chalk.green(`✅ ${newThemes.length}個の新しいテーマを特定しました:\n`));
+      newThemes.forEach(theme => {
+        console.log(chalk.bold(`- ${theme.name}`));
+        console.log(`  ${theme.description}\n`);
+      });
+    } else {
+      console.log(chalk.green('✅ 既存テーマを更新しました\n'));
+    }
+  } catch (error) {
+    console.log(chalk.red(`\n❌ テーマ識別エラー: ${error.message}\n`));
+  }
+
+  await inquirer.prompt([
+    {
+      type: 'input',
+      name: 'continue',
+      message: 'Enterキーでメニューに戻ります...'
+    }
+  ]);
 }
 
 module.exports = {

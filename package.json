@@ -1,9 +1,10 @@
 {
   "name": "arc-agent",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "ARC (Adaptive Research Companion) - 脆い状況にいる個人のための常駐型AIエージェント",
   "main": "src/index.js",
   "scripts": {
+    "start": "node src/index.js",
     "dev": "node src/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
