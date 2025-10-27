@@ -33,6 +33,7 @@ function saveDeadline(deadline) {
  * 全ての未完了締め切りを取得（優先度順）
  */
 function getPendingDeadlines() {
+  const db = getDatabase();
   const stmt = db.prepare(`
     SELECT * FROM deadlines
     WHERE status IN ('pending', 'in_progress')
@@ -46,6 +47,7 @@ function getPendingDeadlines() {
  * 今日の最優先タスク1つだけ取得
  */
 function getTodayTopPriorityTask() {
+  const db = getDatabase();
   const stmt = db.prepare(`
     SELECT * FROM deadlines
     WHERE status IN ('pending', 'in_progress')
@@ -60,6 +62,7 @@ function getTodayTopPriorityTask() {
  * 締め切りの優先度を更新
  */
 function updateDeadlinePriority(deadlineId, priorityScore) {
+  const db = getDatabase();
   const stmt = db.prepare(`
     UPDATE deadlines
     SET priority_score = ?
@@ -73,6 +76,7 @@ function updateDeadlinePriority(deadlineId, priorityScore) {
  * 締め切りのステータスを更新
  */
 function updateDeadlineStatus(deadlineId, status) {
+  const db = getDatabase();
   const stmt = db.prepare(`
     UPDATE deadlines
     SET status = ?, completed_at = CASE WHEN ? = 'completed' THEN datetime('now', 'localtime') ELSE completed_at END
@@ -86,6 +90,7 @@ function updateDeadlineStatus(deadlineId, status) {
  * 締め切りを削除
  */
 function deleteDeadline(deadlineId) {
+  const db = getDatabase();
   const stmt = db.prepare('DELETE FROM deadlines WHERE id = ?');
   stmt.run(deadlineId);
 }
@@ -96,6 +101,7 @@ function deleteDeadline(deadlineId) {
  * ドキュメントを保存
  */
 function saveDocument(document) {
+  const db = getDatabase();
   const stmt = db.prepare(`
     INSERT INTO documents (deadline_id, title, doc_type, content, status)
     VALUES (?, ?, ?, ?, ?)
@@ -116,6 +122,7 @@ function saveDocument(document) {
  * 締め切りに紐づくドキュメント一覧を取得
  */
 function getDocumentsByDeadline(deadlineId) {
+  const db = getDatabase();
   const stmt = db.prepare(`
     SELECT * FROM documents
     WHERE deadline_id = ?
@@ -129,6 +136,7 @@ function getDocumentsByDeadline(deadlineId) {
  * ドキュメントのステータスを更新
  */
 function updateDocumentStatus(documentId, status) {
+  const db = getDatabase();
   const stmt = db.prepare(`
     UPDATE documents
     SET status = ?, submitted_at = CASE WHEN ? = 'submitted' THEN datetime('now', 'localtime') ELSE submitted_at END
@@ -142,6 +150,7 @@ function updateDocumentStatus(documentId, status) {
  * ドキュメントの内容を更新
  */
 function updateDocumentContent(documentId, content) {
+  const db = getDatabase();
   const stmt = db.prepare(`
     UPDATE documents
     SET content = ?
@@ -157,6 +166,7 @@ function updateDocumentContent(documentId, content) {
  * 連絡先を保存
  */
 function saveContact(contact) {
+  const db = getDatabase();
   const stmt = db.prepare(`
     INSERT INTO contacts (name, role, email, phone, organization, notes, last_contact)
     VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -179,6 +189,7 @@ function saveContact(contact) {
  * 全連絡先を取得
  */
 function getAllContacts() {
+  const db = getDatabase();
   const stmt = db.prepare('SELECT * FROM contacts ORDER BY name ASC');
   return stmt.all();
 }
@@ -187,6 +198,7 @@ function getAllContacts() {
  * 連絡先を更新
  */
 function updateContact(contactId, updates) {
+  const db = getDatabase();
   const fields = [];
   const values = [];
 
@@ -212,6 +224,7 @@ function updateContact(contactId, updates) {
  * 緊急連絡先を保存
  */
 function saveEmergencyContact(contact) {
+  const db = getDatabase();
   const stmt = db.prepare(`
     INSERT INTO emergency_contacts (name, phone, relationship, notes, is_active)
     VALUES (?, ?, ?, ?, ?)
@@ -232,6 +245,7 @@ function saveEmergencyContact(contact) {
  * アクティブな緊急連絡先を取得
  */
 function getActiveEmergencyContacts() {
+  const db = getDatabase();
   const stmt = db.prepare(`
     SELECT * FROM emergency_contacts
     WHERE is_active = 1
