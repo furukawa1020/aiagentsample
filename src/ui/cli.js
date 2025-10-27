@@ -256,6 +256,27 @@ async function start() {
       case 'update_themes':
         await updateThemes();
         break;
+      case 'today_task':
+        await showTodayTask();
+        break;
+      case 'add_deadline':
+        await addDeadlineUI();
+        break;
+      case 'list_deadlines':
+        await listDeadlinesUI();
+        break;
+      case 'generate_application':
+        await generateApplicationUI();
+        break;
+      case 'generate_email':
+        await generateEmailUI();
+        break;
+      case 'manage_contacts':
+        await manageContactsUI();
+        break;
+      case 'emergency':
+        await showEmergencyUI();
+        break;
       case 'exit':
         console.log(chalk.cyan('\n👋 またお会いしましょう。あなたの問いはここに残っています。\n'));
         running = false;
