@@ -3,7 +3,7 @@
  * Phase 3: 締め切り・書類・連絡先のデータアクセス層
  */
 
-const db = require('./database').getDatabase();
+const { getDatabase } = require('./database');
 
 // ==================== Deadlines ====================
 
@@ -11,6 +11,7 @@ const db = require('./database').getDatabase();
  * 締め切りを保存
  */
 function saveDeadline(deadline) {
+  const db = getDatabase();
   const stmt = db.prepare(`
     INSERT INTO deadlines (title, description, due_date, category, priority_score, status)
     VALUES (?, ?, ?, ?, ?, ?)
