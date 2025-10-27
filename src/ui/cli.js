@@ -514,6 +514,345 @@ async function updateThemes() {
   ]);
 }
 
+// ==================== Social Interface Functions ====================
+
+/**
+ * 今日の最優先タスクを表示
+ */
+async function showTodayTask() {
+  console.log(chalk.cyan('\n🎯 今日やるべきこと\n'));
+
+  const result = getTodayFocusTask();
+
+  if (!result.hasTask) {
+    console.log(chalk.green(result.message + '\n'));
+    return;
+  }
+
+  console.log(result.message);
+  console.log('');
+
+  // タスクのアクション選択
+  const answer = await inquirer.prompt([
+    {
+      type: 'list',
+      name: 'action',
+      message: 'どうしますか？',
+      choices: [
+        { name: '✅ 着手する（進行中にする）', value: 'start' },
+        { name: '✔️ 完了にする', value: 'complete' },
+        { name: '📄 このタスクのドラフトを見る', value: 'view_docs' },
+        { name: '⬅️ メニューに戻る', value: 'back' }
+      ]
+    }
+  ]);
+
+  if (answer.action === 'start') {
+    startDeadline(result.task.id);
+    console.log(chalk.green('\n✅ 「進行中」にしました。焦らずに、一歩ずつ。\n'));
+  } else if (answer.action === 'complete') {
+    completeDeadline(result.task.id);
+    console.log(chalk.green('\n🎉 完了しました！お疲れ様でした。\n'));
+  } else if (answer.action === 'view_docs') {
+    const docs = getDocumentsByDeadline(result.task.id);
+    if (docs.length === 0) {
+      console.log(chalk.yellow('\nまだドラフトがありません。\n'));
+    } else {
+      docs.forEach(doc => {
+        console.log(chalk.bold(`\n📄 ${doc.title}`));
+        console.log(`ステータス: ${doc.status}`);
+        console.log('---');
+        console.log(doc.content);
+        console.log('---\n');
+      });
+    }
+  }
+}
+
+/**
+ * 締め切りを追加
+ */
+async function addDeadlineUI() {
+  console.log(chalk.cyan('\n📅 締め切りを追加します\n'));
+
+  const answers = await inquirer.prompt([
+    {
+      type: 'input',
+      name: 'title',
+      message: 'タスク名:',
+      validate: (input) => input.trim() !== '' || 'タスク名を入力してください'
+    },
+    {
+      type: 'input',
+      name: 'due_date',
+      message: '締め切り（YYYY-MM-DD）:',
+      validate: (input) => {
+        const match = input.match(/^\d{4}-\d{2}-\d{2}$/);
+        return match || '形式: 2025-12-31';
+      }
+    },
+    {
+      type: 'list',
+      name: 'category',
+      message: 'カテゴリ:',
+      choices: [
+        { name: '🎓 奨学金', value: 'scholarship' },
+        { name: '💰 助成金', value: 'grant' },
+        { name: '📝 提出物', value: 'submission' },
+        { name: '👥 面談・会議', value: 'meeting' },
+        { name: '📄 レポート', value: 'report' },
+        { name: '📋 その他', value: 'other' }
+      ]
+    },
+    {
+      type: 'input',
+      name: 'description',
+      message: '詳細（オプション）:',
+      default: ''
+    }
+  ]);
+
+  const deadline = addDeadline(answers.title, answers.due_date, {
+    category: answers.category,
+    description: answers.description
+  });
+
+  console.log(chalk.green('\n✅ 締め切りを追加しました\n'));
+
+  // すぐにドラフト生成を提案
+  if (answers.category === 'scholarship' || answers.category === 'grant') {
+    const confirm = await inquirer.prompt([
+      {
+        type: 'confirm',
+        name: 'generate',
+        message: '今すぐ申請書ドラフトを生成しますか？',
+        default: false
+      }
+    ]);
+
+    if (confirm.generate) {
+      console.log(chalk.cyan('\n生成中...\n'));
+      const result = await generateApplicationDraft(deadline);
+      console.log(chalk.green('✅ ドラフトを生成しました\n'));
+      console.log('---');
+      console.log(result.content);
+      console.log('---\n');
+    }
+  }
+}
+
+/**
+ * 締め切り一覧を表示
+ */
+async function listDeadlinesUI() {
+  console.log(chalk.cyan('\n📋 締め切り一覧\n'));
+
+  const deadlines = getPendingDeadlines();
+
+  if (deadlines.length === 0) {
+    console.log(chalk.green('締め切りはありません。\n'));
+    return;
+  }
+
+  const stats = getDeadlineStats();
+  console.log(chalk.bold(`全タスク: ${stats.total}件`));
+  if (stats.overdue > 0) {
+    console.log(chalk.red(`⚠️ 期限切れ: ${stats.overdue}件`));
+  }
+  console.log(chalk.yellow(`📅 今週: ${stats.thisWeek}件`));
+  console.log('');
+
+  deadlines.slice(0, 10).forEach((d, index) => {
+    const dueDate = new Date(d.due_date);
+    const now = new Date();
+    const daysUntil = Math.ceil((dueDate - now) / (1000 * 60 * 60 * 24));
+
+    let urgency = '';
+    if (daysUntil <= 0) {
+      urgency = chalk.red('⚠️ 期限切れ');
+    } else if (daysUntil <= 3) {
+      urgency = chalk.red(`🔥 あと${daysUntil}日`);
+    } else if (daysUntil <= 7) {
+      urgency = chalk.yellow(`⏰ あと${daysUntil}日`);
+    } else {
+      urgency = chalk.gray(`📅 ${daysUntil}日後`);
+    }
+
+    console.log(`${index + 1}. ${d.title} ${urgency}`);
+    console.log(`   ${d.due_date} [${d.category}] ${d.status}`);
+  });
+
+  console.log('');
+}
+
+/**
+ * 申請書生成
+ */
+async function generateApplicationUI() {
+  console.log(chalk.cyan('\n✍️ 申請書ドラフトを生成します\n'));
+
+  const deadlines = getPendingDeadlines().filter(d => 
+    d.category === 'scholarship' || d.category === 'grant'
+  );
+
+  if (deadlines.length === 0) {
+    console.log(chalk.yellow('奨学金・助成金の締め切りがありません。\n'));
+    return;
+  }
+
+  const answer = await inquirer.prompt([
+    {
+      type: 'list',
+      name: 'deadline_id',
+      message: 'どの申請のドラフトを作りますか？',
+      choices: deadlines.map(d => ({
+        name: `${d.title} (${d.due_date})`,
+        value: d.id
+      }))
+    }
+  ]);
+
+  const deadline = deadlines.find(d => d.id === answer.deadline_id);
+
+  console.log(chalk.cyan('\n生成中...（30秒〜1分）\n'));
+
+  const result = await generateApplicationDraft(deadline);
+
+  console.log(chalk.green('✅ ドラフトを生成しました\n'));
+  console.log('---');
+  console.log(result.content);
+  console.log('---\n');
+
+  if (result.note) {
+    console.log(chalk.yellow(`※ ${result.note}\n`));
+  }
+
+  console.log(chalk.gray('このドラフトは自動生成されたものです。必ず内容を確認・修正してください。\n'));
+}
+
+/**
+ * メール骨子生成
+ */
+async function generateEmailUI() {
+  console.log(chalk.cyan('\n✉️ メール骨子を生成します\n'));
+
+  const contacts = listContacts();
+
+  const answers = await inquirer.prompt([
+    {
+      type: 'input',
+      name: 'recipient',
+      message: '宛先の名前:',
+      validate: (input) => input.trim() !== '' || '名前を入力してください'
+    },
+    {
+      type: 'input',
+      name: 'purpose',
+      message: '目的（何をお願いしたいか）:',
+      validate: (input) => input.trim() !== '' || '目的を入力してください'
+    },
+    {
+      type: 'input',
+      name: 'context',
+      message: '状況・背景（オプション）:',
+      default: ''
+    }
+  ]);
+
+  console.log(chalk.cyan('\n生成中...\n'));
+
+  const result = await generateEmailDraft(
+    { name: answers.recipient },
+    answers.purpose,
+    answers.context
+  );
+
+  console.log(chalk.green('✅ メール骨子を生成しました\n'));
+  console.log('---');
+  console.log(result.content);
+  console.log('---\n');
+
+  if (result.note) {
+    console.log(chalk.yellow(`※ ${result.note}\n`));
+  }
+
+  console.log(chalk.gray('このメールは骨子です。必ずあなた自身の言葉で確認・調整してください。\n'));
+}
+
+/**
+ * 連絡先管理
+ */
+async function manageContactsUI() {
+  const answer = await inquirer.prompt([
+    {
+      type: 'list',
+      name: 'action',
+      message: '連絡先管理',
+      choices: [
+        { name: '📋 連絡先一覧', value: 'list' },
+        { name: '➕ 連絡先を追加', value: 'add' },
+        { name: '🆘 緊急連絡先を追加', value: 'add_emergency' },
+        { name: '⬅️ 戻る', value: 'back' }
+      ]
+    }
+  ]);
+
+  if (answer.action === 'list') {
+    const contacts = listContacts();
+    if (contacts.length === 0) {
+      console.log(chalk.yellow('\n連絡先がありません。\n'));
+    } else {
+      console.log(chalk.cyan('\n👥 連絡先一覧\n'));
+      contacts.forEach((c, i) => {
+        console.log(`${i + 1}. ${c.name}`);
+        if (c.role) console.log(`   役割: ${c.role}`);
+        if (c.email) console.log(`   Email: ${c.email}`);
+        if (c.organization) console.log(`   所属: ${c.organization}`);
+        console.log('');
+      });
+    }
+  } else if (answer.action === 'add') {
+    const details = await inquirer.prompt([
+      { type: 'input', name: 'name', message: '名前:' },
+      { type: 'input', name: 'role', message: '役割（教員、窓口など）:' },
+      { type: 'input', name: 'email', message: 'Email:' },
+      { type: 'input', name: 'organization', message: '所属:' }
+    ]);
+    addContact(details.name, details);
+    console.log(chalk.green('\n✅ 連絡先を追加しました\n'));
+  } else if (answer.action === 'add_emergency') {
+    const details = await inquirer.prompt([
+      { type: 'input', name: 'name', message: '名前:', validate: (v) => v.trim() !== '' },
+      { type: 'input', name: 'phone', message: '電話番号:', validate: (v) => v.trim() !== '' },
+      { type: 'input', name: 'relationship', message: '関係性:' },
+      { type: 'input', name: 'notes', message: 'メモ:' }
+    ]);
+    addEmergencyContact(details.name, details.phone, details);
+    console.log(chalk.green('\n✅ 緊急連絡先を追加しました\n'));
+  }
+}
+
+/**
+ * 緊急連絡先・支援窓口表示
+ */
+async function showEmergencyUI() {
+  console.log(chalk.cyan('\n'));
+
+  const result = showEmergencyContacts();
+  console.log(result.message);
+
+  console.log(showPublicSupportResources());
+
+  await inquirer.prompt([
+    {
+      type: 'confirm',
+      name: 'ok',
+      message: '確認しました',
+      default: true
+    }
+  ]);
+}
+
 module.exports = {
   start
 };
