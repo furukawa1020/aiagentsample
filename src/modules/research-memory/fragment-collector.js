@@ -72,9 +72,37 @@ function emotionToEnglish(japanese) {
   return map[japanese] || null;
 }
 
+/**
+ * 断片記録の非アクティブチェック（3日以上記録なし）
+ */
+async function checkFragmentInactivity() {
+  const { getAllFragments } = require('../../storage/research-models');
+  const fragments = getAllFragments(1);
+  
+  if (fragments.length === 0) {
+    return { inactive: true, days: Infinity, message: 'まだ断片が記録されていません' };
+  }
+  
+  const lastFragment = fragments[0];
+  const lastDate = new Date(lastFragment.created_at);
+  const now = new Date();
+  const daysSince = Math.floor((now - lastDate) / (1000 * 60 * 60 * 24));
+  
+  if (daysSince >= 3) {
+    return {
+      inactive: true,
+      days: daysSince,
+      message: `最後の記録から${daysSince}日経過しています。最近、考え事はありますか？`
+    };
+  }
+  
+  return { inactive: false, days: daysSince };
+}
+
 module.exports = {
   collectFragment,
   validateFragment,
   emotionToJapanese,
-  emotionToEnglish
+  emotionToEnglish,
+  checkFragmentInactivity
 };

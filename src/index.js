@@ -6,6 +6,7 @@
 require('dotenv').config();
 const { initDatabase } = require('./storage/database');
 const { isOllamaAvailable, showOllamaSetupGuide } = require('./llm/llm-client');
+const { startScheduler } = require('./scheduler/jobs');
 const cli = require('./ui/cli');
 
 async function main() {
@@ -29,6 +30,10 @@ async function main() {
     } else if (openaiAvailable) {
       console.log('✅ OpenAI API が利用可能です\n');
     }
+    
+    // スケジューラー起動（バックグラウンドジョブ）
+    startScheduler();
+    console.log('');
     
     // CLIインターフェース起動
     await cli.start();
