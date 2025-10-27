@@ -101,20 +101,21 @@ ARCは3つのコアモジュールで構成されています：
 ## 🛠️ 技術スタック（候補）
 
 ### バックエンド
-- Python 3.10+ / Node.js 18+
-- FastAPI / Express
-- SQLite + SQLCipher（暗号化DB）
-- APScheduler / node-cron（定期実行）
+- Node.js 18+
+- SQLite + better-sqlite3
+- node-cron（定期実行）
 
-### フロントエンド
-- React / Vue.js
+### フロントエンド（現在）
+- CLI（inquirer + chalk）
+
+### フロントエンド（将来）
 - Electron（デスクトップ化）
 - React Native / Flutter（モバイル対応）
 
 ### AI/ML
-- OpenAI GPT-4 / Claude API
-- Llama 2/3（ローカル推論用）
-- Chroma / FAISS（ベクトル検索）
+- **Ollama + Llama 3.2**（完全無料・ローカル） ⭐ 推奨
+- OpenAI GPT-3.5/4（オプショナル・有料）
+- 自動フォールバック機能
 
 ---
 

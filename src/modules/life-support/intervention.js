@@ -3,7 +3,7 @@
  * 介入メッセージの生成
  */
 
-const { generateInterventionMessage } = require('../../llm/openai-client');
+const { generateInterventionMessage } = require('../../llm/llm-client');
 const { saveIntervention } = require('../../storage/models');
 
 /**
