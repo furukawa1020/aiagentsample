@@ -4,9 +4,10 @@
  */
 
 const OpenAI = require('openai');
+const axios = require('axios');
 
-// Ollama設定
-const OLLAMA_BASE_URL = process.env.OLLAMA_BASE_URL || 'http://localhost:11434';
+// Ollama設定（IPv4を明示的に使用）
+const OLLAMA_BASE_URL = process.env.OLLAMA_BASE_URL || 'http://127.0.0.1:11434';
 const OLLAMA_MODEL = process.env.OLLAMA_MODEL || 'llama3.2:3b';
 
 // OpenAI設定（オプショナル）
@@ -22,12 +23,14 @@ if (process.env.OPENAI_API_KEY) {
  */
 async function isOllamaAvailable() {
   try {
-    const response = await fetch(`${OLLAMA_BASE_URL}/api/tags`, {
-      method: 'GET',
-      signal: AbortSignal.timeout(3000) // 3秒タイムアウト
+    console.log('🔍 Ollama接続チェック中:', OLLAMA_BASE_URL);
+    const response = await axios.get(`${OLLAMA_BASE_URL}/api/tags`, {
+      timeout: 3000
     });
-    return response.ok;
+    console.log('✅ Ollama応答:', response.status);
+    return response.status === 200;
   } catch (error) {
+    console.error('❌ Ollama接続失敗:', error.message);
     return false;
   }
 }
@@ -36,27 +39,23 @@ async function isOllamaAvailable() {
  * Ollamaでメッセージ生成
  */
 async function generateWithOllama(systemPrompt, userPrompt) {
-  const response = await fetch(`${OLLAMA_BASE_URL}/api/generate`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      model: OLLAMA_MODEL,
-      prompt: `${systemPrompt}\n\n${userPrompt}`,
-      stream: false,
-      options: {
-        temperature: 0.7,
-        num_predict: 300
-      }
-    })
+  const response = await axios.post(`${OLLAMA_BASE_URL}/api/generate`, {
+    model: OLLAMA_MODEL,
+    prompt: `${systemPrompt}\n\n${userPrompt}`,
+    stream: false,
+    options: {
+      temperature: 0.7,
+      num_predict: 300
+    }
+  }, {
+    timeout: 30000 // 30秒タイムアウト
   });
 
-  if (!response.ok) {
+  if (response.status !== 200) {
     throw new Error(`Ollama API error: ${response.status}`);
   }
 
-  const data = await response.json();
+  const data = response.data;
   return data.response.trim();
 }
 

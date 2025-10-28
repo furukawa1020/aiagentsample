@@ -472,6 +472,12 @@
     
     let isChatMode = false;
     let isMoving = true; // ふぐが動いているか
+    let isDragging = false; // ドラッグ中かどうか
+    let dragStartX = 0;
+    let dragStartY = 0;
+    let dragOffsetX = 0;
+    let dragOffsetY = 0;
+    let hasMoved = false; // マウスが実際に移動したか
     
     // 画面サイズ
     let screenWidth = window.innerWidth;
@@ -487,9 +493,67 @@
     character.style.left = currentX + 'px';
     character.style.top = currentY + 'px';
     
+    // ドラッグ機能
+    character.addEventListener('mousedown', (e) => {
+      // チャット中でない場合のみドラッグ可能
+      if (!speechBubble.classList.contains('chat-mode')) {
+        dragStartX = e.clientX;
+        dragStartY = e.clientY;
+        dragOffsetX = e.clientX - character.offsetLeft;
+        dragOffsetY = e.clientY - character.offsetTop;
+        hasMoved = false;
+        isDragging = true;
+        character.style.cursor = 'grabbing';
+      }
+    });
+    
+    document.addEventListener('mousemove', (e) => {
+      if (isDragging) {
+        // 5px以上移動したら「移動した」と判定
+        if (Math.abs(e.clientX - dragStartX) > 5 || Math.abs(e.clientY - dragStartY) > 5) {
+          hasMoved = true;
+          isMoving = false; // 自動移動停止
+        }
+        
+        const newX = e.clientX - dragOffsetX;
+        const newY = e.clientY - dragOffsetY;
+        
+        // 画面内に収める
+        const boundedX = Math.max(0, Math.min(newX, screenWidth - 100));
+        const boundedY = Math.max(0, Math.min(newY, screenHeight - 100));
+        
+        character.style.left = boundedX + 'px';
+        character.style.top = boundedY + 'px';
+        
+        currentX = boundedX;
+        currentY = boundedY;
+        targetX = boundedX;
+        targetY = boundedY;
+      }
+    });
+    
+    document.addEventListener('mouseup', () => {
+      if (isDragging) {
+        isDragging = false;
+        character.style.cursor = 'pointer';
+        // ドラッグ終了後、3秒後に自動移動再開
+        if (hasMoved) {
+          setTimeout(() => {
+            if (!speechBubble.classList.contains('chat-mode')) {
+              isMoving = true;
+            }
+          }, 3000);
+        }
+      }
+    });
+    
     // ランダムに目標位置を設定
     function setNewTarget() {
-      if (!isMoving) return; // チャット中は動かない
+      if (!isMoving) {
+        // チャット中は動かない、3秒後に再チェック
+        setTimeout(setNewTarget, 3000);
+        return;
+      }
       
       targetX = Math.random() * (screenWidth - 120);
       targetY = Math.random() * (screenHeight - 120);
@@ -571,6 +635,41 @@
       bubble.classList.add('show', 'chat-mode');
       simpleMessage.style.display = 'none';
       chatContainer.style.display = 'block';
+      
+      // チャットバブルの位置調整（画面端で見切れないように）
+      const fuguRect = character.getBoundingClientRect();
+      const bubbleWidth = 500; // max-width
+      const screenWidth = window.innerWidth;
+      const screenHeight = window.innerHeight;
+      
+      // 左右の位置調整
+      if (fuguRect.left + bubbleWidth/2 > screenWidth - 20) {
+        // 右端に寄せすぎ → 右寄せ
+        bubble.style.left = 'auto';
+        bubble.style.right = '10px';
+        bubble.style.transform = 'none';
+      } else if (fuguRect.left - bubbleWidth/2 < 20) {
+        // 左端に寄せすぎ → 左寄せ
+        bubble.style.left = '10px';
+        bubble.style.right = 'auto';
+        bubble.style.transform = 'none';
+      } else {
+        // 中央配置（デフォルト）
+        bubble.style.left = '50%';
+        bubble.style.right = 'auto';
+        bubble.style.transform = 'translateX(-50%)';
+      }
+      
+      // 上下の位置調整
+      if (fuguRect.top < 450) {
+        // ふぐが画面上部 → バブルを下に
+        bubble.style.bottom = 'auto';
+        bubble.style.top = '110px';
+      } else {
+        // ふぐが画面下部 → バブルを上に（デフォルト）
+        bubble.style.top = 'auto';
+        bubble.style.bottom = '110px';
+      }
       
       // 初期メッセージ
       if (document.getElementById('chat-history').children.length === 0) {
@@ -654,6 +753,12 @@
     
     // クリックイベント
     character.addEventListener('click', (e) => {
+      // ドラッグした場合はクリックイベントを無視
+      if (hasMoved) {
+        hasMoved = false;
+        return;
+      }
+      
       e.stopPropagation();
       console.log('ふぐクリック！');
 
@@ -682,16 +787,21 @@
       const sendBtn = document.getElementById('chat-send-btn');
       const chatInput = document.getElementById('chat-input');
       
+      console.log('🔧 イベントリスナー設定中...');
+      console.log('  closeBtn:', closeBtn);
+      console.log('  sendBtn:', sendBtn);
+      console.log('  chatInput:', chatInput);
+      
       if (closeBtn) {
         closeBtn.addEventListener('click', (e) => {
-          e.stopPropagation();
+          console.log('✕ボタンクリック');
           closeChatMode();
         });
       }
       
       if (sendBtn) {
         sendBtn.addEventListener('click', (e) => {
-          e.stopPropagation();
+          console.log('📤 送信ボタンクリック');
           sendChatMessage();
         });
       }
@@ -699,19 +809,8 @@
       if (chatInput) {
         chatInput.addEventListener('keypress', (e) => {
           if (e.key === 'Enter') {
+            console.log('⏎ Enterキー送信');
             e.preventDefault();
-            sendChatMessage();
-          }
-        });
-      }
-    });
-
-    // Enterキーで送信
-    document.addEventListener('DOMContentLoaded', () => {
-      const chatInput = document.getElementById('chat-input');
-      if (chatInput) {
-        chatInput.addEventListener('keypress', (e) => {
-          if (e.key === 'Enter') {
             sendChatMessage();
           }
         });
