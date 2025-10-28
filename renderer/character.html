@@ -630,6 +630,17 @@
         simpleMessage.textContent = message;
         simpleMessage.style.display = 'block';
         chatContainer.style.display = 'none';
+        
+        // 三角形の向きを調整
+        const fuguRect = character.getBoundingClientRect();
+        if (fuguRect.top < 450) {
+          // ふぐが上部 → 三角形は上向き
+          bubble.classList.add('arrow-up');
+        } else {
+          // ふぐが下部 → 三角形は下向き
+          bubble.classList.remove('arrow-up');
+        }
+        
         bubble.classList.add('show');
         
         // 5秒後に消す
@@ -677,15 +688,17 @@
         bubble.style.transform = 'translateX(-50%)';
       }
       
-      // 上下の位置調整
+      // 上下の位置調整と三角形の向き
       if (fuguRect.top < 450) {
-        // ふぐが画面上部 → バブルを下に
+        // ふぐが画面上部 → バブルを下に、三角形は上向き
         bubble.style.bottom = 'auto';
         bubble.style.top = '110px';
+        bubble.classList.add('arrow-up'); // 三角形を上向きに
       } else {
-        // ふぐが画面下部 → バブルを上に（デフォルト）
+        // ふぐが画面下部 → バブルを上に、三角形は下向き（デフォルト）
         bubble.style.top = 'auto';
         bubble.style.bottom = '110px';
+        bubble.classList.remove('arrow-up'); // 三角形を下向きに
       }
       
       // 初期メッセージ
