@@ -806,13 +806,13 @@
         showSpeech(message);
         messageIndex++;
         
-        // 次のメッセージ（30-60秒後）
-        const nextDelay = 5000 + Math.random() * 5000; // 超うざい！5-10秒ごと
+        // 次のメッセージ（3-7秒後）
+        const nextDelay = 3000 + Math.random() * 4000; // もっとうざい！3-7秒ごと
         setTimeout(speak, nextDelay);
       };
       
-      // 最初のメッセージ（10秒後）
-      setTimeout(speak, 3000); // 最初は3秒後！
+      // 最初のメッセージ（2秒後）
+      setTimeout(speak, 2000); // 最初は2秒後！
     }
     
     startSpeaking();
@@ -827,6 +827,9 @@
       
       e.stopPropagation();
       console.log('ふぐクリック！');
+      
+      // 確実に動きを止める
+      isMoving = false;
 
       // チャット中ならチャットを閉じる
       const bubble = document.getElementById('speech-bubble');
@@ -846,42 +849,39 @@
       }, 300);
     });
     
-
-    // イベントリスナーを設定
-    document.addEventListener('DOMContentLoaded', () => {
-      const closeBtn = document.getElementById('chat-close-btn');
-      const sendBtn = document.getElementById('chat-send-btn');
-      const chatInput = document.getElementById('chat-input');
-      
-      console.log('🔧 イベントリスナー設定中...');
-      console.log('  closeBtn:', closeBtn);
-      console.log('  sendBtn:', sendBtn);
-      console.log('  chatInput:', chatInput);
-      
-      if (closeBtn) {
-        closeBtn.addEventListener('click', (e) => {
-          console.log('✕ボタンクリック');
-          closeChatMode();
-        });
-      }
-      
-      if (sendBtn) {
-        sendBtn.addEventListener('click', (e) => {
-          console.log('📤 送信ボタンクリック');
+    // イベントリスナーを設定（DOMContentLoaded不要、すでにDOMロード済み）
+    const closeBtn = document.getElementById('chat-close-btn');
+    const sendBtn = document.getElementById('chat-send-btn');
+    // chatInputは上で定義済み
+    
+    console.log('🔧 イベントリスナー設定中...');
+    console.log('  closeBtn:', closeBtn);
+    console.log('  sendBtn:', sendBtn);
+    console.log('  chatInput:', chatInput);
+    
+    if (closeBtn) {
+      closeBtn.addEventListener('click', (e) => {
+        console.log('✕ボタンクリック');
+        closeChatMode();
+      });
+    }
+    
+    if (sendBtn) {
+      sendBtn.addEventListener('click', (e) => {
+        console.log('📤 送信ボタンクリック');
+        sendChatMessage();
+      });
+    }
+    
+    if (chatInput) {
+      chatInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          console.log('⏎ Enterキー送信');
+          e.preventDefault();
           sendChatMessage();
-        });
-      }
-      
-      if (chatInput) {
-        chatInput.addEventListener('keypress', (e) => {
-          if (e.key === 'Enter') {
-            console.log('⏎ Enterキー送信');
-            e.preventDefault();
-            sendChatMessage();
-          }
-        });
-      }
-    });
+        }
+      });
+    }
     
     // マウスオーバーで透明部分のクリックを無効化
     document.body.addEventListener('mousemove', (e) => {
