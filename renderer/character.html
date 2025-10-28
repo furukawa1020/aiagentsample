@@ -656,7 +656,14 @@
     character.addEventListener('click', (e) => {
       e.stopPropagation();
       console.log('ふぐクリック！');
-      
+
+      // チャット中ならチャットを閉じる
+      const bubble = document.getElementById('speech-bubble');
+      if (bubble.classList.contains('chat-mode')) {
+        closeChatMode();
+        return;
+      }
+
       // 会話モードを開く
       openChatMode();
       
@@ -761,5 +768,6 @@
   </script>
 </body>
 </html>
+
 
 
