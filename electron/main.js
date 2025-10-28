@@ -141,8 +141,8 @@ function createCharacterWindow() {
   // 全画面表示（透明背景でふぐだけ表示）
   characterWindow.setPosition(0, 0);
   
-  // マウスイベントを下のウィンドウに通過させる（ふぐ以外の部分）
-  characterWindow.setIgnoreMouseEvents(true, { forward: true });
+  // 初期状態ではマウスイベントを通過させない（クリック可能）
+  characterWindow.setIgnoreMouseEvents(false);
 
   // 閉じるボタンで非表示
   characterWindow.on('close', (event) => {
@@ -155,7 +155,15 @@ function createCharacterWindow() {
 
 // IPCハンドラー: キャラクタークリック
 ipcMain.on('character-clicked', () => {
+  console.log('ふぐがクリックされました！');
   showMainWindow();
+});
+
+// IPCハンドラー: マウスが透明部分にいるかどうか
+ipcMain.on('set-ignore-mouse-events', (event, ignore) => {
+  if (characterWindow) {
+    characterWindow.setIgnoreMouseEvents(ignore, { forward: true });
+  }
 });
 
 /**

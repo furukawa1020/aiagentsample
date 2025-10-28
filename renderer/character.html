@@ -330,6 +330,7 @@
     // クリックイベント
     character.addEventListener('click', (e) => {
       e.stopPropagation();
+      console.log('ふぐクリック！');
       ipcRenderer.send('character-clicked');
       
       // クリック時に膨らむアニメーション
@@ -338,6 +339,20 @@
       setTimeout(() => {
         body.style.transform = 'scale(1)';
       }, 300);
+    });
+    
+    // マウスオーバーで透明部分のクリックを無効化
+    document.body.addEventListener('mousemove', (e) => {
+      const rect = character.getBoundingClientRect();
+      const isOverCharacter = (
+        e.clientX >= rect.left &&
+        e.clientX <= rect.right &&
+        e.clientY >= rect.top &&
+        e.clientY <= rect.bottom
+      );
+      
+      // ふぐの上にいる時だけクリック可能、それ以外は貫通
+      ipcRenderer.send('set-ignore-mouse-events', !isOverCharacter);
     });
     
     // 通知受信時の泡エフェクト
