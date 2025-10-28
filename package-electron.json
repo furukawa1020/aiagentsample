@@ -1,0 +1,45 @@
+{
+  "name": "arc-desktop",
+  "version": "0.4.0",
+  "description": "ARC - Desktop Application (Electron)",
+  "main": "electron/main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "build": "electron-builder",
+    "build:win": "electron-builder --win"
+  },
+  "build": {
+    "appId": "com.arc.agent",
+    "productName": "ARC",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "electron/**/*",
+      "src/**/*",
+      "renderer/**/*",
+      "arc.db",
+      "package.json"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "assets/icon.ico"
+    }
+  },
+  "dependencies": {
+    "electron": "^27.0.0",
+    "electron-store": "^8.1.0",
+    "better-sqlite3": "^9.2.0",
+    "inquirer": "^8.2.5",
+    "chalk": "^4.1.2",
+    "dotenv": "^16.3.1",
+    "node-cron": "^3.0.3"
+  },
+  "devDependencies": {
+    "electron-builder": "^24.6.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
