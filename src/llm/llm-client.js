@@ -102,12 +102,55 @@ async function generateMessage(systemPrompt, userPrompt) {
       return await generateWithOpenAI(systemPrompt, userPrompt);
     } catch (error) {
       console.error('❌ OpenAI生成失敗:', error.message);
-      throw error;
+      // フォールバック応答
+      return getFallbackResponse(userPrompt);
     }
   }
 
-  // 3. どちらも使えない場合はエラー
-  throw new Error('LLMが利用できません。Ollamaをインストールするか、OPENAI_API_KEYを設定してください。');
+  // 3. どちらも使えない場合はフォールバック応答
+  console.warn('⚠️  LLMが利用できません。フォールバック応答を使用します。');
+  console.warn('💡 Ollamaをインストールするか、OPENAI_API_KEYを設定してください。');
+  return getFallbackResponse(userPrompt);
+}
+
+/**
+ * フォールバック応答生成（LLMなしでも自然な応答）
+ */
+function getFallbackResponse(userPrompt) {
+  const responses = [
+    '今日はどんな1日だった？話してくれると嬉しいな。',
+    'ゆっくり休んでね。明日はまた新しい日だよ。',
+    'あなたのペースでいいんだよ。焦らなくて大丈夫。',
+    '小さなことでも、できたことがあったら教えて？',
+    '疲れてるよね。無理しないでね。',
+    'そばにいるよ。困ったことがあったら話してね。',
+    '今日も1日お疲れさま。よく頑張ったね。',
+    '何か食べた？水分取った？小さなことから気にかけよう。',
+    '今の気持ちを教えてくれる？無理に話さなくてもいいけど。',
+    '深呼吸してみよう。ゆっくり、ゆっくり。'
+  ];
+  
+  // ユーザーのプロンプトに応じた応答
+  const prompt = userPrompt.toLowerCase();
+  
+  if (prompt.includes('しんどい') || prompt.includes('疲れ') || prompt.includes('辛い')) {
+    return '辛いよね。無理しないで。少し休んでもいいんだよ。';
+  }
+  
+  if (prompt.includes('睡眠') || prompt.includes('寝') || prompt.includes('眠')) {
+    return '睡眠は大事だよ。できるだけゆっくり休んでね。';
+  }
+  
+  if (prompt.includes('食事') || prompt.includes('食べ') || prompt.includes('ご飯')) {
+    return '食べられるものから食べてね。無理しなくていいからね。';
+  }
+  
+  if (prompt.includes('研究') || prompt.includes('論文') || prompt.includes('勉強')) {
+    return 'あなたの考えていること、とても大事だと思うよ。少しずつ形にしていこう。';
+  }
+  
+  // ランダム応答
+  return responses[Math.floor(Math.random() * responses.length)];
 }
 
 /**
@@ -169,6 +212,26 @@ ${lifeLog.free_text ? `- メモ: ${lifeLog.free_text}` : ''}
 }
 
 /**
+ * チャット応答生成
+ */
+async function generateChatResponse(userMessage) {
+  const systemPrompt = `あなたはARCというAIエージェントです。ふぐのキャラクターです。
+
+性格:
+- 優しく、温かい
+- ユーザーを励まし、肯定する
+- 責めない、評価しない
+- 時々ふぐらしい反応（ぷくー、など）
+
+重要:
+- 短く、親しみやすい口調で話す
+- 相手の気持ちに寄り添う
+- 小さなことも大きく肯定する`;
+
+  return await generateMessage(systemPrompt, userMessage);
+}
+
+/**
  * Ollamaのセットアップガイド表示
  */
 function showOllamaSetupGuide() {
@@ -187,6 +250,7 @@ function showOllamaSetupGuide() {
 module.exports = {
   generateInterventionMessage,
   generateDailySummaryWithLLM,
+  generateChatResponse,
   isOllamaAvailable,
   showOllamaSetupGuide
 };

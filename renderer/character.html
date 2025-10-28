@@ -240,10 +240,189 @@
         transform: translateY(-50px) scale(1.5);
       }
     }
+
+    /* 吹き出し */
+    .speech-bubble {
+      position: absolute;
+      bottom: 110px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: white;
+      border: 3px solid #333;
+      border-radius: 15px;
+      padding: 12px 18px;
+      min-width: 150px;
+      max-width: 250px;
+      font-size: 14px;
+      font-weight: bold;
+      color: #333;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.3s ease;
+      z-index: 1000;
+      text-align: center;
+      font-family: 'メイリオ', 'Meiryo', sans-serif;
+    }
+
+    .speech-bubble.show {
+      opacity: 1;
+      pointer-events: auto;
+      animation: bounce 0.5s ease-out;
+    }
+
+    /* 会話モード（大きい吹き出し） */
+    .speech-bubble.chat-mode {
+      min-width: 400px;
+      max-width: 500px;
+      padding: 20px;
+      text-align: left;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    /* 会話履歴 */
+    .chat-history {
+      margin-bottom: 15px;
+      max-height: 250px;
+      overflow-y: auto;
+    }
+
+    .chat-message {
+      margin-bottom: 10px;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-weight: normal;
+      font-size: 13px;
+    }
+
+    .chat-message.user {
+      background: #E3F2FD;
+      margin-left: 20px;
+    }
+
+    .chat-message.arc {
+      background: #FFF3E0;
+      margin-right: 20px;
+    }
+
+    /* 入力エリア */
+    .chat-input-area {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+      border-top: 2px solid #eee;
+      padding-top: 10px;
+    }
+
+    .chat-input {
+      flex: 1;
+      padding: 8px 12px;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: 'メイリオ', 'Meiryo', sans-serif;
+    }
+
+    .chat-input:focus {
+      outline: none;
+      border-color: #4A90E2;
+    }
+
+    .chat-send-btn {
+      padding: 8px 16px;
+      background: #4A90E2;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 14px;
+    }
+
+    .chat-send-btn:hover {
+      background: #357ABD;
+    }
+
+    .chat-close-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      width: 24px;
+      height: 24px;
+      background: #ff5252;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 16px;
+      line-height: 1;
+    }
+
+    .chat-close-btn:hover {
+      background: #ff1744;
+    }
+
+    /* 吹き出しの三角形（下向き） */
+    .speech-bubble::after {
+      content: '';
+      position: absolute;
+      bottom: -15px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 15px solid transparent;
+      border-right: 15px solid transparent;
+      border-top: 15px solid white;
+    }
+
+    .speech-bubble::before {
+      content: '';
+      position: absolute;
+      bottom: -20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 18px solid transparent;
+      border-right: 18px solid transparent;
+      border-top: 18px solid #333;
+    }
+
+    @keyframes bounce {
+      0% {
+        transform: translateX(-50%) translateY(20px);
+        opacity: 0;
+      }
+      60% {
+        transform: translateX(-50%) translateY(-5px);
+      }
+      100% {
+        transform: translateX(-50%) translateY(0);
+        opacity: 1;
+      }
+    }
   </style>
 </head>
 <body>
   <div id="character">
+    <!-- 吹き出し -->
+    <div class="speech-bubble" id="speech-bubble">
+      <!-- 通常モード: シンプルメッセージ -->
+      <div class="simple-message" id="simple-message"></div>
+      
+      <!-- 会話モード: チャット -->
+      <div class="chat-container" id="chat-container" style="display: none;">
+        <button class="chat-close-btn" onclick="closeChatMode()">×</button>
+        <div class="chat-history" id="chat-history"></div>
+        <div class="chat-input-area">
+          <input type="text" class="chat-input" id="chat-input" placeholder="話してみて...">
+          <button class="chat-send-btn" onclick="sendChatMessage()">送信</button>
+        </div>
+      </div>
+    </div>
+    
     <div class="fugu-character">
       <!-- 体 -->
       <div class="body">
@@ -327,11 +506,130 @@
     // 最初の移動開始（2秒後）
     setTimeout(setNewTarget, 2000);
     
+    // 吹き出しメッセージのリスト
+    const messages = [
+      '何か困ってる？',
+      'ねえねえ、話聞くよ？',
+      '大丈夫？疲れてない？',
+      '今日の調子どう？',
+      '何か手伝おうか？',
+      '休憩しよ！',
+      'クリックしてみて！',
+      '一緒に考えよう',
+      'ここにいるよ',
+      // お前を消す方法ネタ
+      '「お前を消す方法」\nって検索したでしょ？😏',
+      '消そうとしても\n消えないよ〜 🐡',
+      '僕を消したい？\nでも困った時に必要でしょ？',
+      '設定から\nキャラクター表示OFFにすれば\n消えるよ！（寂しい）'
+    ];
+    
+    let messageIndex = 0;
+    let speechTimer = null;
+    
+    // 吹き出しを表示（シンプルモード）
+    function showSpeech(message) {
+      const bubble = document.getElementById('speech-bubble');
+      const simpleMessage = document.getElementById('simple-message');
+      const chatContainer = document.getElementById('chat-container');
+      
+      // 会話モードでない場合のみ表示
+      if (!bubble.classList.contains('chat-mode')) {
+        simpleMessage.textContent = message;
+        simpleMessage.style.display = 'block';
+        chatContainer.style.display = 'none';
+        bubble.classList.add('show');
+        
+        // 5秒後に消す
+        clearTimeout(speechTimer);
+        speechTimer = setTimeout(() => {
+          bubble.classList.remove('show');
+        }, 5000);
+      }
+    }
+    
+    // 会話モードを開く
+    function openChatMode() {
+      const bubble = document.getElementById('speech-bubble');
+      const simpleMessage = document.getElementById('simple-message');
+      const chatContainer = document.getElementById('chat-container');
+      
+      bubble.classList.add('show', 'chat-mode');
+      simpleMessage.style.display = 'none';
+      chatContainer.style.display = 'block';
+      
+      // 初期メッセージ
+      if (document.getElementById('chat-history').children.length === 0) {
+        addChatMessage('arc', 'どうしたの？何でも話してね！');
+      }
+      
+      // 入力欄にフォーカス
+      setTimeout(() => {
+        document.getElementById('chat-input').focus();
+      }, 100);
+    }
+    
+    // 会話モードを閉じる
+    function closeChatMode() {
+      const bubble = document.getElementById('speech-bubble');
+      bubble.classList.remove('show', 'chat-mode');
+    }
+    
+    // チャットメッセージを追加
+    function addChatMessage(sender, message) {
+      const chatHistory = document.getElementById('chat-history');
+      const messageDiv = document.createElement('div');
+      messageDiv.className = `chat-message ${sender}`;
+      messageDiv.textContent = message;
+      chatHistory.appendChild(messageDiv);
+      chatHistory.scrollTop = chatHistory.scrollHeight;
+    }
+    
+    // メッセージ送信
+    function sendChatMessage() {
+      const input = document.getElementById('chat-input');
+      const message = input.value.trim();
+      
+      if (!message) return;
+      
+      // ユーザーメッセージを表示
+      addChatMessage('user', message);
+      input.value = '';
+      
+      // LLMに送信
+      ipcRenderer.send('chat-message', message);
+    }
+    
+    // LLMからの応答を受信
+    ipcRenderer.on('chat-response', (event, response) => {
+      addChatMessage('arc', response);
+    });
+    
+    // 定期的に話しかける（30-60秒ごと）
+    function startSpeaking() {
+      const speak = () => {
+        const message = messages[messageIndex % messages.length];
+        showSpeech(message);
+        messageIndex++;
+        
+        // 次のメッセージ（30-60秒後）
+        const nextDelay = 30000 + Math.random() * 30000;
+        setTimeout(speak, nextDelay);
+      };
+      
+      // 最初のメッセージ（10秒後）
+      setTimeout(speak, 10000);
+    }
+    
+    startSpeaking();
+    
     // クリックイベント
     character.addEventListener('click', (e) => {
       e.stopPropagation();
       console.log('ふぐクリック！');
-      ipcRenderer.send('character-clicked');
+      
+      // 会話モードを開く
+      openChatMode();
       
       // クリック時に膨らむアニメーション
       const body = document.querySelector('.body');
@@ -339,6 +637,18 @@
       setTimeout(() => {
         body.style.transform = 'scale(1)';
       }, 300);
+    });
+    
+    // Enterキーで送信
+    document.addEventListener('DOMContentLoaded', () => {
+      const chatInput = document.getElementById('chat-input');
+      if (chatInput) {
+        chatInput.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') {
+            sendChatMessage();
+          }
+        });
+      }
     });
     
     // マウスオーバーで透明部分のクリックを無効化

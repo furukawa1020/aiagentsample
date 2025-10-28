@@ -159,6 +159,26 @@ ipcMain.on('character-clicked', () => {
   showMainWindow();
 });
 
+// IPCハンドラー: チャットメッセージ
+ipcMain.on('chat-message', async (event, message) => {
+  console.log('ユーザー:', message);
+  
+  // LLMで応答生成
+  const { generateChatResponse } = require('../src/llm/llm-client');
+  try {
+    const response = await generateChatResponse(message);
+    console.log('ARC:', response);
+    
+    // レンダラープロセスに送信
+    if (characterWindow) {
+      characterWindow.webContents.send('chat-response', response);
+    }
+  } catch (error) {
+    console.error('チャット応答生成エラー:', error);
+    characterWindow.webContents.send('chat-response', 'ごめん、ちょっと調子悪いみたい...');
+  }
+});
+
 // IPCハンドラー: マウスが透明部分にいるかどうか
 ipcMain.on('set-ignore-mouse-events', (event, ignore) => {
   if (characterWindow) {
