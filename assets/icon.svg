@@ -1,0 +1,26 @@
+<svg width="256" height="256" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景円 -->
+  <circle cx="128" cy="128" r="120" fill="url(#grad1)"/>
+  
+  <!-- グラデーション定義 -->
+  <defs>
+    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4A90E2;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#357ABD;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- 目（左） -->
+  <ellipse cx="90" cy="110" rx="12" ry="16" fill="white"/>
+  <ellipse cx="93" cy="113" rx="8" ry="8" fill="#333"/>
+  
+  <!-- 目（右） -->
+  <ellipse cx="166" cy="110" rx="12" ry="16" fill="white"/>
+  <ellipse cx="169" cy="113" rx="8" ry="8" fill="#333"/>
+  
+  <!-- 口（笑顔） -->
+  <path d="M 90 150 Q 128 180 166 150" stroke="white" stroke-width="6" fill="none" stroke-linecap="round"/>
+  
+  <!-- ハイライト -->
+  <circle cx="100" cy="80" r="20" fill="white" opacity="0.3"/>
+</svg>
