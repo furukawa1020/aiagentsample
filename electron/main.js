@@ -78,7 +78,7 @@ function createTray() {
     { type: 'separator' },
     {
       label: '🔍 今日の問いを見る',
-      click: () => showTodaysQuestion()
+      click: () => showMainWindow('question')
     },
     {
       label: '🌟 核テーマを確認',
@@ -292,6 +292,54 @@ ipcMain.on('show-notification', (event, { title, body }) => {
     icon: path.join(__dirname, '../assets/icon.png')
   });
   notification.show();
+});
+
+// 体調記録
+ipcMain.handle('log-health', async (event, data) => {
+  const { logLifeData } = require('../src/modules/life-support/logger');
+  try {
+    logLifeData(data);
+    return { success: true, message: '体調を記録しました！' };
+  } catch (error) {
+    console.error('体調記録エラー:', error);
+    return { success: false, message: 'エラーが発生しました' };
+  }
+});
+
+// 思考の断片を記録
+ipcMain.handle('save-fragment', async (event, data) => {
+  const { saveFragment } = require('../src/modules/research-memory/fragment-collector');
+  try {
+    const result = saveFragment(data.content, data.emotion);
+    return { success: true, message: '思考の断片を記録しました！', id: result };
+  } catch (error) {
+    console.error('断片記録エラー:', error);
+    return { success: false, message: 'エラーが発生しました' };
+  }
+});
+
+// 今日の問いを取得
+ipcMain.handle('get-todays-question', async () => {
+  const { morningQuestionReminder } = require('../src/modules/research-memory/re-presentation');
+  try {
+    const result = morningQuestionReminder();
+    return { success: true, data: result };
+  } catch (error) {
+    console.error('今日の問い取得エラー:', error);
+    return { success: false, message: 'エラーが発生しました' };
+  }
+});
+
+// 核テーマを取得
+ipcMain.handle('get-core-themes', async () => {
+  const { getActiveCoreThemes } = require('../src/storage/research-models');
+  try {
+    const themes = getActiveCoreThemes();
+    return { success: true, data: themes };
+  } catch (error) {
+    console.error('核テーマ取得エラー:', error);
+    return { success: false, message: 'エラーが発生しました' };
+  }
 });
 
 // アプリケーション終了処理

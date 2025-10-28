@@ -248,6 +248,7 @@ function showOllamaSetupGuide() {
 }
 
 module.exports = {
+  generateMessage,
   generateInterventionMessage,
   generateDailySummaryWithLLM,
   generateChatResponse,
