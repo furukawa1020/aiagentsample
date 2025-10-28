@@ -278,14 +278,18 @@
       padding: 20px;
       text-align: left;
       max-height: 400px;
-      overflow-y: auto;
+      overflow: visible; /* 親はスクロールしない */
+      display: flex;
+      flex-direction: column;
     }
 
     /* 会話履歴 */
     .chat-history {
       margin-bottom: 15px;
       max-height: 250px;
-      overflow-y: auto;
+      overflow-y: auto; /* ここだけスクロール */
+      flex: 1; /* 残りのスペースを使う */
+      min-height: 0; /* Flexboxのスクロール問題を解決 */
     }
 
     .chat-message {
@@ -631,14 +635,32 @@
         simpleMessage.style.display = 'block';
         chatContainer.style.display = 'none';
         
-        // 三角形の向きを調整
+        // 位置と三角形の向きを調整（スペース考慮）
         const fuguRect = character.getBoundingClientRect();
-        if (fuguRect.top < 450) {
-          // ふぐが上部 → 三角形は上向き
-          bubble.classList.add('arrow-up');
-        } else {
-          // ふぐが下部 → 三角形は下向き
+        const bubbleHeight = 200; // シンプル吹き出しの高さ + マージン
+        const spaceAbove = fuguRect.top;
+        const spaceBelow = window.innerHeight - fuguRect.bottom;
+        
+        if (spaceAbove > bubbleHeight && spaceBelow < bubbleHeight) {
+          // 上に十分スペースあり → バブルを上に、三角形は下向き
+          bubble.style.top = 'auto';
+          bubble.style.bottom = '110px';
           bubble.classList.remove('arrow-up');
+        } else if (spaceBelow > bubbleHeight && spaceAbove < bubbleHeight) {
+          // 下に十分スペースあり → バブルを下に、三角形は上向き
+          bubble.style.bottom = 'auto';
+          bubble.style.top = '110px';
+          bubble.classList.add('arrow-up');
+        } else if (spaceAbove > spaceBelow) {
+          // 上の方が広い → バブルを上に、三角形は下向き
+          bubble.style.top = 'auto';
+          bubble.style.bottom = '110px';
+          bubble.classList.remove('arrow-up');
+        } else {
+          // 下の方が広い → バブルを下に、三角形は上向き
+          bubble.style.bottom = 'auto';
+          bubble.style.top = '110px';
+          bubble.classList.add('arrow-up');
         }
         
         bubble.classList.add('show');
@@ -689,16 +711,30 @@
       }
       
       // 上下の位置調整と三角形の向き
-      if (fuguRect.top < 450) {
-        // ふぐが画面上部 → バブルを下に、三角形は上向き
-        bubble.style.bottom = 'auto';
-        bubble.style.top = '110px';
-        bubble.classList.add('arrow-up'); // 三角形を上向きに
-      } else {
-        // ふぐが画面下部 → バブルを上に、三角形は下向き（デフォルト）
+      const bubbleHeight = 450; // 吹き出しの最大高さ + マージン
+      const spaceAbove = fuguRect.top; // ふぐより上の空間
+      const spaceBelow = screenHeight - fuguRect.bottom; // ふぐより下の空間
+      
+      if (spaceAbove > bubbleHeight && spaceBelow < bubbleHeight) {
+        // 上に十分スペースあり、下は狭い → バブルを上に、三角形は下向き
         bubble.style.top = 'auto';
         bubble.style.bottom = '110px';
-        bubble.classList.remove('arrow-up'); // 三角形を下向きに
+        bubble.classList.remove('arrow-up');
+      } else if (spaceBelow > bubbleHeight && spaceAbove < bubbleHeight) {
+        // 下に十分スペースあり、上は狭い → バブルを下に、三角形は上向き
+        bubble.style.bottom = 'auto';
+        bubble.style.top = '110px';
+        bubble.classList.add('arrow-up');
+      } else if (spaceAbove > spaceBelow) {
+        // 両方狭いけど上の方が広い → バブルを上に
+        bubble.style.top = 'auto';
+        bubble.style.bottom = '110px';
+        bubble.classList.remove('arrow-up');
+      } else {
+        // 両方狭いけど下の方が広い → バブルを下に
+        bubble.style.bottom = 'auto';
+        bubble.style.top = '110px';
+        bubble.classList.add('arrow-up');
       }
       
       // 初期メッセージ
