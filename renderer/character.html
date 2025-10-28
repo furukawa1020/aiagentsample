@@ -463,6 +463,15 @@
   <script>
     const { ipcRenderer } = require('electron');
     const character = document.getElementById('character');
+    const speechBubble = document.getElementById('speech-bubble');
+    const bubbleText = document.getElementById('bubble-text');
+    const chatMessages = document.getElementById('chat-messages');
+    const chatInput = document.getElementById('chat-input');
+    const chatSend = document.getElementById('chat-send');
+    const closeChat = document.getElementById('close-chat');
+    
+    let isChatMode = false;
+    let isMoving = true; // ふぐが動いているか
     
     // 画面サイズ
     let screenWidth = window.innerWidth;
@@ -480,6 +489,8 @@
     
     // ランダムに目標位置を設定
     function setNewTarget() {
+      if (!isMoving) return; // チャット中は動かない
+      
       targetX = Math.random() * (screenWidth - 120);
       targetY = Math.random() * (screenHeight - 120);
       
@@ -554,6 +565,9 @@
       const simpleMessage = document.getElementById('simple-message');
       const chatContainer = document.getElementById('chat-container');
       
+      // 動きを止める
+      isMoving = false;
+      
       bubble.classList.add('show', 'chat-mode');
       simpleMessage.style.display = 'none';
       chatContainer.style.display = 'block';
@@ -573,6 +587,10 @@
     function closeChatMode() {
       const bubble = document.getElementById('speech-bubble');
       bubble.classList.remove('show', 'chat-mode');
+      
+      // 動きを再開
+      isMoving = true;
+      setTimeout(setNewTarget, 2000);
     }
     
     // チャットメッセージを追加
@@ -586,8 +604,9 @@
     }
     
     // メッセージ送信
-    function sendChatMessage() {
+    async function sendChatMessage() {
       const input = document.getElementById('chat-input');
+      const sendBtn = document.querySelector('.chat-send-btn');
       const message = input.value.trim();
       
       if (!message) return;
@@ -596,14 +615,24 @@
       addChatMessage('user', message);
       input.value = '';
       
-      // LLMに送信
-      ipcRenderer.send('chat-message', message);
+      // 送信ボタンを無効化
+      sendBtn.disabled = true;
+      sendBtn.textContent = '考え中...';
+      
+      try {
+        // LLMに送信（chat-with-fuguを使用）
+        const response = await ipcRenderer.invoke('chat-with-fugu', message);
+        addChatMessage('arc', response);
+      } catch (error) {
+        console.error('Chat error:', error);
+        addChatMessage('arc', 'ごめん、ちょっと調子悪いかも...');
+      }
+      
+      // 送信ボタンを再有効化
+      sendBtn.disabled = false;
+      sendBtn.textContent = '送信';
+      input.focus();
     }
-    
-    // LLMからの応答を受信
-    ipcRenderer.on('chat-response', (event, response) => {
-      addChatMessage('arc', response);
-    });
     
     // 定期的に話しかける（30-60秒ごと）
     function startSpeaking() {

@@ -159,6 +159,23 @@ ipcMain.on('character-clicked', () => {
   showMainWindow();
 });
 
+// IPCハンドラー: ふぐとのチャット
+ipcMain.handle('chat-with-fugu', async (event, message) => {
+  console.log('ユーザー:', message);
+  
+  // LLMで応答生成
+  const { generateMessage } = require('../src/llm/llm-client');
+  try {
+    const systemPrompt = 'あなたは「ふぐ」という名前の可愛らしいキャラクターです。ユーザーに寄り添い、優しく話を聞いてあげてください。短めに、親しみやすく話してください。';
+    const response = await generateMessage(systemPrompt, message);
+    console.log('ARC:', response);
+    return response;
+  } catch (error) {
+    console.error('チャット応答生成エラー:', error);
+    return 'ごめん、ちょっと調子悪いみたい...';
+  }
+});
+
 // IPCハンドラー: チャットメッセージ
 ipcMain.on('chat-message', async (event, message) => {
   console.log('ユーザー:', message);
