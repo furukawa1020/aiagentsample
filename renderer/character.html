@@ -363,7 +363,7 @@
       background: #ff1744;
     }
 
-    /* 吹き出しの三角形（下向き） */
+    /* 吹き出しの三角形（下向き - デフォルト） */
     .speech-bubble::after {
       content: '';
       position: absolute;
@@ -375,6 +375,7 @@
       border-left: 15px solid transparent;
       border-right: 15px solid transparent;
       border-top: 15px solid white;
+      border-bottom: none;
     }
 
     .speech-bubble::before {
@@ -388,6 +389,22 @@
       border-left: 18px solid transparent;
       border-right: 18px solid transparent;
       border-top: 18px solid #333;
+      border-bottom: none;
+    }
+
+    /* 吹き出しが下に表示されるとき（上向き三角） */
+    .speech-bubble.arrow-up::after {
+      bottom: auto;
+      top: -15px;
+      border-top: none;
+      border-bottom: 15px solid white;
+    }
+
+    .speech-bubble.arrow-up::before {
+      bottom: auto;
+      top: -20px;
+      border-top: none;
+      border-bottom: 18px solid #333;
     }
 
     @keyframes bounce {
