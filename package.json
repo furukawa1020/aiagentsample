@@ -1,35 +1,45 @@
 {
-  "name": "arc-agent",
-  "version": "0.3.0",
-  "description": "ARC (Adaptive Research Companion) - 脆い状況にいる個人のための常駐型AIエージェント",
-  "main": "src/index.js",
+  "name": "arc-desktop",
+  "version": "0.4.0",
+  "description": "ARC - Desktop Application (Electron)",
+  "main": "electron/main.js",
   "scripts": {
-    "start": "node src/index.js",
-    "dev": "node src/index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "build": "electron-builder",
+    "build:win": "electron-builder --win"
   },
-  "keywords": [
-    "ai",
-    "agent",
-    "research",
-    "mental-health",
-    "life-support"
-  ],
-  "author": "",
-  "license": "MIT",
+  "build": {
+    "appId": "com.arc.agent",
+    "productName": "ARC",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "electron/**/*",
+      "src/**/*",
+      "renderer/**/*",
+      "arc.db",
+      "package.json"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "assets/icon.ico"
+    }
+  },
   "dependencies": {
+    "electron": "^27.0.0",
+    "electron-store": "^8.1.0",
     "better-sqlite3": "^9.2.0",
     "inquirer": "^8.2.5",
     "chalk": "^4.1.2",
     "dotenv": "^16.3.1",
-    "node-cron": "^3.0.3",
-    "node-notifier": "^10.0.1"
+    "node-cron": "^3.0.3"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "electron-builder": "^24.6.0"
+  },
   "engines": {
     "node": ">=18.0.0"
-  },
-  "optionalDependencies": {
-    "openai": "^4.20.0"
   }
 }
