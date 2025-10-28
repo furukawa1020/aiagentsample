@@ -1,0 +1,732 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>ARC Character - Fugu</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      width: 100vw;
+      height: 100vh;
+      background: transparent;
+      overflow: hidden;
+      cursor: pointer;
+    }
+
+    #character {
+      position: absolute;
+      width: 100px;
+      height: 100px;
+      transition: left 2s ease-in-out, top 2s ease-in-out;
+      -webkit-app-region: no-drag;
+    }
+
+    /* ふぐキャラクター（丸っこい体） */
+    .fugu-character {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transform-origin: center;
+    }
+
+    /* 体（ふぐの丸い体） */
+    .body {
+      width: 80px;
+      height: 70px;
+      background: linear-gradient(135deg, #FFA07A 0%, #FF8C69 50%, #FFB090 100%);
+      border-radius: 45% 45% 40% 40%;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      position: absolute;
+      top: 15px;
+      left: 10px;
+      animation: swim 2s ease-in-out infinite;
+    }
+
+    /* 体の模様（ふぐの斑点） */
+    .spot {
+      position: absolute;
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+    }
+
+    .spot1 { width: 12px; height: 12px; top: 15px; left: 15px; }
+    .spot2 { width: 8px; height: 8px; top: 35px; left: 25px; }
+    .spot3 { width: 10px; height: 10px; top: 25px; right: 15px; }
+
+    /* ヒレ（左右） */
+    .fin {
+      position: absolute;
+      width: 20px;
+      height: 15px;
+      background: rgba(255, 140, 105, 0.7);
+      border-radius: 50% 0 50% 0;
+    }
+
+    .fin-left {
+      top: 35px;
+      left: -5px;
+      transform: rotate(-20deg);
+      animation: fin-wave-left 1s ease-in-out infinite;
+    }
+
+    .fin-right {
+      top: 35px;
+      right: -5px;
+      transform: rotate(20deg) scaleX(-1);
+      animation: fin-wave-right 1s ease-in-out infinite;
+    }
+
+    /* 尾びれ */
+    .tail {
+      position: absolute;
+      width: 25px;
+      height: 30px;
+      background: linear-gradient(135deg, #FF8C69 0%, #FFA07A 100%);
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+      animation: tail-wave 1.2s ease-in-out infinite;
+    }
+
+    /* 目 */
+    .eyes {
+      position: absolute;
+      top: 25px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 25px;
+      z-index: 10;
+    }
+
+    .eye {
+      width: 14px;
+      height: 16px;
+      background: white;
+      border-radius: 50%;
+      position: relative;
+      animation: blink 4s infinite;
+      border: 2px solid #333;
+    }
+
+    .pupil {
+      width: 8px;
+      height: 8px;
+      background: #333;
+      border-radius: 50%;
+      position: absolute;
+      top: 4px;
+      left: 3px;
+      animation: look-around 5s ease-in-out infinite;
+    }
+
+    /* 口（小さな○） */
+    .mouth {
+      position: absolute;
+      top: 50px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 15px;
+      height: 15px;
+      border: 2px solid #333;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.5);
+      z-index: 10;
+    }
+
+    /* アニメーション: 泳ぐ動き */
+    @keyframes swim {
+      0%, 100% {
+        transform: translateY(0) rotate(0deg);
+      }
+      25% {
+        transform: translateY(-3px) rotate(2deg);
+      }
+      75% {
+        transform: translateY(3px) rotate(-2deg);
+      }
+    }
+
+    /* アニメーション: ヒレ（左） */
+    @keyframes fin-wave-left {
+      0%, 100% {
+        transform: rotate(-20deg);
+      }
+      50% {
+        transform: rotate(-35deg);
+      }
+    }
+
+    /* アニメーション: ヒレ（右） */
+    @keyframes fin-wave-right {
+      0%, 100% {
+        transform: rotate(20deg) scaleX(-1);
+      }
+      50% {
+        transform: rotate(35deg) scaleX(-1);
+      }
+    }
+
+    /* アニメーション: 尾びれ */
+    @keyframes tail-wave {
+      0%, 100% {
+        transform: translateX(-50%) rotate(0deg);
+      }
+      50% {
+        transform: translateX(-50%) rotate(10deg);
+      }
+    }
+
+    /* アニメーション: まばたき */
+    @keyframes blink {
+      0%, 96%, 100% {
+        height: 16px;
+      }
+      98% {
+        height: 3px;
+      }
+    }
+
+    /* アニメーション: 目の動き */
+    @keyframes look-around {
+      0%, 100% { left: 3px; top: 4px; }
+      25% { left: 1px; top: 4px; }
+      50% { left: 5px; top: 4px; }
+      75% { left: 3px; top: 2px; }
+    }
+
+    /* ホバーエフェクト（膨らむ） */
+    .fugu-character:hover .body {
+      transform: scale(1.15);
+      background: linear-gradient(135deg, #FFB090 0%, #FFA07A 50%, #FF8C69 100%);
+    }
+
+    /* 通知時の泡 */
+    .bubble {
+      position: absolute;
+      background: rgba(173, 216, 230, 0.6);
+      border-radius: 50%;
+      animation: bubble-rise 2s ease-in-out infinite;
+    }
+
+    .bubble:nth-child(1) { 
+      width: 10px; height: 10px; 
+      bottom: 20px; left: 20px; 
+      animation-delay: 0s; 
+    }
+    .bubble:nth-child(2) { 
+      width: 8px; height: 8px; 
+      bottom: 30px; right: 25px; 
+      animation-delay: 0.4s; 
+    }
+    .bubble:nth-child(3) { 
+      width: 12px; height: 12px; 
+      bottom: 25px; left: 50px; 
+      animation-delay: 0.8s; 
+    }
+
+    @keyframes bubble-rise {
+      0% { 
+        opacity: 0.8;
+        transform: translateY(0) scale(1);
+      }
+      100% { 
+        opacity: 0;
+        transform: translateY(-50px) scale(1.5);
+      }
+    }
+
+    /* 吹き出し */
+    .speech-bubble {
+      position: absolute;
+      bottom: 110px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: white;
+      border: 3px solid #333;
+      border-radius: 15px;
+      padding: 12px 18px;
+      min-width: 150px;
+      max-width: 250px;
+      font-size: 14px;
+      font-weight: bold;
+      color: #333;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.3s ease;
+      z-index: 1000;
+      text-align: center;
+      font-family: 'メイリオ', 'Meiryo', sans-serif;
+    }
+
+    .speech-bubble.show {
+      opacity: 1;
+      pointer-events: auto;
+      animation: bounce 0.5s ease-out;
+    }
+
+    /* 会話モード（大きい吹き出し） */
+    .speech-bubble.chat-mode {
+      min-width: 400px;
+      max-width: 500px;
+      padding: 20px;
+      text-align: left;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    /* 会話履歴 */
+    .chat-history {
+      margin-bottom: 15px;
+      max-height: 250px;
+      overflow-y: auto;
+    }
+
+    .chat-message {
+      margin-bottom: 10px;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-weight: normal;
+      font-size: 13px;
+    }
+
+    .chat-message.user {
+      background: #E3F2FD;
+      margin-left: 20px;
+    }
+
+    .chat-message.arc {
+      background: #FFF3E0;
+      margin-right: 20px;
+    }
+
+    /* 入力エリア */
+    .chat-input-area {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+      border-top: 2px solid #eee;
+      padding-top: 10px;
+    }
+
+    .chat-input {
+      flex: 1;
+      padding: 8px 12px;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: 'メイリオ', 'Meiryo', sans-serif;
+    }
+
+    .chat-input:focus {
+      outline: none;
+      border-color: #4A90E2;
+    }
+
+    .chat-send-btn {
+      padding: 8px 16px;
+      background: #4A90E2;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 14px;
+    }
+
+    .chat-send-btn:hover {
+      background: #357ABD;
+    }
+
+    .chat-close-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      width: 24px;
+      height: 24px;
+      background: #ff5252;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 16px;
+      line-height: 1;
+    }
+
+    .chat-close-btn:hover {
+      background: #ff1744;
+    }
+
+    /* 吹き出しの三角形（下向き） */
+    .speech-bubble::after {
+      content: '';
+      position: absolute;
+      bottom: -15px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 15px solid transparent;
+      border-right: 15px solid transparent;
+      border-top: 15px solid white;
+    }
+
+    .speech-bubble::before {
+      content: '';
+      position: absolute;
+      bottom: -20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 18px solid transparent;
+      border-right: 18px solid transparent;
+      border-top: 18px solid #333;
+    }
+
+    @keyframes bounce {
+      0% {
+        transform: translateX(-50%) translateY(20px);
+        opacity: 0;
+      }
+      60% {
+        transform: translateX(-50%) translateY(-5px);
+      }
+      100% {
+        transform: translateX(-50%) translateY(0);
+        opacity: 1;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="character">
+    <!-- 吹き出し -->
+    <div class="speech-bubble" id="speech-bubble">
+      <!-- 通常モード: シンプルメッセージ -->
+      <div class="simple-message" id="simple-message"></div>
+      
+      <!-- 会話モード: チャット -->
+      <div class="chat-container" id="chat-container" style="display: none;">
+        <button class="chat-close-btn" onclick="closeChatMode()">×</button>
+        <div class="chat-history" id="chat-history"></div>
+        <div class="chat-input-area">
+          <input type="text" class="chat-input" id="chat-input" placeholder="話してみて...">
+          <button class="chat-send-btn" onclick="sendChatMessage()">送信</button>
+        </div>
+      </div>
+    </div>
+    
+    <div class="fugu-character">
+      <!-- 体 -->
+      <div class="body">
+        <div class="spot spot1"></div>
+        <div class="spot spot2"></div>
+        <div class="spot spot3"></div>
+      </div>
+      
+      <!-- ヒレ -->
+      <div class="fin fin-left"></div>
+      <div class="fin fin-right"></div>
+      
+      <!-- 尾びれ -->
+      <div class="tail"></div>
+      
+      <!-- 目 -->
+      <div class="eyes">
+        <div class="eye">
+          <div class="pupil"></div>
+        </div>
+        <div class="eye">
+          <div class="pupil"></div>
+        </div>
+      </div>
+      
+      <!-- 口 -->
+      <div class="mouth"></div>
+      
+      <!-- 泡エフェクト（通知時に表示） -->
+      <div class="bubbles" style="display: none;">
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const { ipcRenderer } = require('electron');
+    const character = document.getElementById('character');
+    const speechBubble = document.getElementById('speech-bubble');
+    const bubbleText = document.getElementById('bubble-text');
+    const chatMessages = document.getElementById('chat-messages');
+    const chatInput = document.getElementById('chat-input');
+    const chatSend = document.getElementById('chat-send');
+    const closeChat = document.getElementById('close-chat');
+    
+    let isChatMode = false;
+    let isMoving = true; // ふぐが動いているか
+    
+    // 画面サイズ
+    let screenWidth = window.innerWidth;
+    let screenHeight = window.innerHeight;
+    
+    // 現在位置と目標位置
+    let currentX = Math.random() * (screenWidth - 100);
+    let currentY = Math.random() * (screenHeight - 100);
+    let targetX = currentX;
+    let targetY = currentY;
+    
+    // 初期位置設定
+    character.style.left = currentX + 'px';
+    character.style.top = currentY + 'px';
+    
+    // ランダムに目標位置を設定
+    function setNewTarget() {
+      if (!isMoving) return; // チャット中は動かない
+      
+      targetX = Math.random() * (screenWidth - 120);
+      targetY = Math.random() * (screenHeight - 120);
+      
+      // キャラクターを目標位置に移動
+      character.style.left = targetX + 'px';
+      character.style.top = targetY + 'px';
+      
+      // 移動方向に応じて向きを変える
+      const fuguChar = document.querySelector('.fugu-character');
+      if (targetX < currentX) {
+        fuguChar.style.transform = 'scaleX(-1)'; // 左向き
+      } else {
+        fuguChar.style.transform = 'scaleX(1)'; // 右向き
+      }
+      
+      currentX = targetX;
+      currentY = targetY;
+      
+      // 3-8秒後に次の移動
+      const nextMoveDelay = 3000 + Math.random() * 5000;
+      setTimeout(setNewTarget, nextMoveDelay);
+    }
+    
+    // 最初の移動開始（2秒後）
+    setTimeout(setNewTarget, 2000);
+    
+    // 吹き出しメッセージのリスト
+    const messages = [
+      '何か困ってる？',
+      'ねえねえ、話聞くよ？',
+      '大丈夫？疲れてない？',
+      '今日の調子どう？',
+      '何か手伝おうか？',
+      '休憩しよ！',
+      'クリックしてみて！',
+      '一緒に考えよう',
+      'ここにいるよ',
+      // お前を消す方法ネタ
+      '「お前を消す方法」\nって検索したでしょ？😏',
+      '消そうとしても\n消えないよ〜 🐡',
+      '僕を消したい？\nでも困った時に必要でしょ？',
+      '設定から\nキャラクター表示OFFにすれば\n消えるよ！（寂しい）'
+    ];
+    
+    let messageIndex = 0;
+    let speechTimer = null;
+    
+    // 吹き出しを表示（シンプルモード）
+    function showSpeech(message) {
+      const bubble = document.getElementById('speech-bubble');
+      const simpleMessage = document.getElementById('simple-message');
+      const chatContainer = document.getElementById('chat-container');
+      
+      // 会話モードでない場合のみ表示
+      if (!bubble.classList.contains('chat-mode')) {
+        simpleMessage.textContent = message;
+        simpleMessage.style.display = 'block';
+        chatContainer.style.display = 'none';
+        bubble.classList.add('show');
+        
+        // 5秒後に消す
+        clearTimeout(speechTimer);
+        speechTimer = setTimeout(() => {
+          bubble.classList.remove('show');
+        }, 5000);
+      }
+    }
+    
+    // 会話モードを開く
+    function openChatMode() {
+      const bubble = document.getElementById('speech-bubble');
+      const simpleMessage = document.getElementById('simple-message');
+      const chatContainer = document.getElementById('chat-container');
+      
+      // 動きを止める
+      isMoving = false;
+      
+      bubble.classList.add('show', 'chat-mode');
+      simpleMessage.style.display = 'none';
+      chatContainer.style.display = 'block';
+      
+      // 初期メッセージ
+      if (document.getElementById('chat-history').children.length === 0) {
+        addChatMessage('arc', 'どうしたの？何でも話してね！');
+      }
+      
+      // 入力欄にフォーカス
+      setTimeout(() => {
+        document.getElementById('chat-input').focus();
+      }, 100);
+    }
+    
+    // 会話モードを閉じる
+    function closeChatMode() {
+      const bubble = document.getElementById('speech-bubble');
+      bubble.classList.remove('show', 'chat-mode');
+      
+      // 動きを再開
+      isMoving = true;
+      setTimeout(setNewTarget, 2000);
+    }
+    
+    // チャットメッセージを追加
+    function addChatMessage(sender, message) {
+      const chatHistory = document.getElementById('chat-history');
+      const messageDiv = document.createElement('div');
+      messageDiv.className = `chat-message ${sender}`;
+      messageDiv.textContent = message;
+      chatHistory.appendChild(messageDiv);
+      chatHistory.scrollTop = chatHistory.scrollHeight;
+    }
+    
+    // メッセージ送信
+    async function sendChatMessage() {
+      const input = document.getElementById('chat-input');
+      const sendBtn = document.querySelector('.chat-send-btn');
+      const message = input.value.trim();
+      
+      if (!message) return;
+      
+      // ユーザーメッセージを表示
+      addChatMessage('user', message);
+      input.value = '';
+      
+      // 送信ボタンを無効化
+      sendBtn.disabled = true;
+      sendBtn.textContent = '考え中...';
+      
+      try {
+        // LLMに送信（chat-with-fuguを使用）
+        const response = await ipcRenderer.invoke('chat-with-fugu', message);
+        addChatMessage('arc', response);
+      } catch (error) {
+        console.error('Chat error:', error);
+        addChatMessage('arc', 'ごめん、ちょっと調子悪いかも...');
+      }
+      
+      // 送信ボタンを再有効化
+      sendBtn.disabled = false;
+      sendBtn.textContent = '送信';
+      input.focus();
+    }
+    
+    // 定期的に話しかける（30-60秒ごと）
+    function startSpeaking() {
+      const speak = () => {
+        const message = messages[messageIndex % messages.length];
+        showSpeech(message);
+        messageIndex++;
+        
+        // 次のメッセージ（30-60秒後）
+        const nextDelay = 5000 + Math.random() * 5000; // 超うざい！5-10秒ごと
+        setTimeout(speak, nextDelay);
+      };
+      
+      // 最初のメッセージ（10秒後）
+      setTimeout(speak, 3000); // 最初は3秒後！
+    }
+    
+    startSpeaking();
+    
+    // クリックイベント
+    character.addEventListener('click', (e) => {
+      e.stopPropagation();
+      console.log('ふぐクリック！');
+      
+      // 会話モードを開く
+      openChatMode();
+      
+      // クリック時に膨らむアニメーション
+      const body = document.querySelector('.body');
+      body.style.transform = 'scale(1.3)';
+      setTimeout(() => {
+        body.style.transform = 'scale(1)';
+      }, 300);
+    });
+    
+    // Enterキーで送信
+    document.addEventListener('DOMContentLoaded', () => {
+      const chatInput = document.getElementById('chat-input');
+      if (chatInput) {
+        chatInput.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') {
+            sendChatMessage();
+          }
+        });
+      }
+    });
+    
+    // マウスオーバーで透明部分のクリックを無効化
+    document.body.addEventListener('mousemove', (e) => {
+      const rect = character.getBoundingClientRect();
+      const isOverCharacter = (
+        e.clientX >= rect.left &&
+        e.clientX <= rect.right &&
+        e.clientY >= rect.top &&
+        e.clientY <= rect.bottom
+      );
+      
+      // ふぐの上にいる時だけクリック可能、それ以外は貫通
+      ipcRenderer.send('set-ignore-mouse-events', !isOverCharacter);
+    });
+    
+    // 通知受信時の泡エフェクト
+    ipcRenderer.on('show-sparkle', () => {
+      const bubbles = document.querySelector('.bubbles');
+      bubbles.style.display = 'block';
+      setTimeout(() => {
+        bubbles.style.display = 'none';
+      }, 2000);
+    });
+    
+    // ウィンドウリサイズ対応
+    window.addEventListener('resize', () => {
+      screenWidth = window.innerWidth;
+      screenHeight = window.innerHeight;
+    });
+    
+    // 時刻に応じた動き
+    function updateBehavior() {
+      const hour = new Date().getHours();
+      const mouth = document.querySelector('.mouth');
+      
+      if (hour >= 22 || hour < 6) {
+        // 深夜はゆっくり動く（移動頻度を下げる）
+        mouth.style.width = '10px';
+        mouth.style.height = '10px';
+      } else {
+        // 昼間は活発
+        mouth.style.width = '15px';
+        mouth.style.height = '15px';
+      }
+    }
+    
+    updateBehavior();
+    setInterval(updateBehavior, 60000); // 1分ごとに更新
+  </script>
+</body>
+</html>
