@@ -239,7 +239,7 @@ function showOllamaSetupGuide() {
   console.log('🤖 ローカルLLM（Ollama）のセットアップ');
   console.log('='.repeat(60));
   console.log('\n1. Ollamaをダウンロード:');
-  console.log('   https://ollama.com/download\n');
+  console.log('   https://ollama.com/download\n');か
   console.log('2. インストール後、以下を実行:');
   console.log('   ollama pull llama3.2:3b\n');
   console.log('3. ARCを再起動\n');
