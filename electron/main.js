@@ -114,17 +114,22 @@ function createTray() {
 }
 
 /**
- * キャラクターウィンドウ作成（イルカ風）
+ * キャラクターウィンドウ作成（ふぐ - 画面を歩き回る）
  */
 function createCharacterWindow() {
+  const { screen } = require('electron');
+  const primaryDisplay = screen.getPrimaryDisplay();
+  const { width, height } = primaryDisplay.workAreaSize;
+
   characterWindow = new BrowserWindow({
-    width: 120,
-    height: 120,
+    width: width,
+    height: height,
     frame: false,
     transparent: true,
     alwaysOnTop: true,
     skipTaskbar: true,
     resizable: false,
+    hasShadow: false,
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false
@@ -133,17 +138,11 @@ function createCharacterWindow() {
 
   characterWindow.loadFile(path.join(__dirname, '../renderer/character.html'));
 
-  // 画面右下に配置
-  const { screen } = require('electron');
-  const primaryDisplay = screen.getPrimaryDisplay();
-  const { width, height } = primaryDisplay.workAreaSize;
+  // 全画面表示（透明背景でふぐだけ表示）
+  characterWindow.setPosition(0, 0);
   
-  characterWindow.setPosition(width - 140, height - 140);
-
-  // クリックで会話ウィンドウ
-  characterWindow.on('click', () => {
-    showMainWindow();
-  });
+  // マウスイベントを下のウィンドウに通過させる（ふぐ以外の部分）
+  characterWindow.setIgnoreMouseEvents(true, { forward: true });
 
   // 閉じるボタンで非表示
   characterWindow.on('close', (event) => {
@@ -153,6 +152,11 @@ function createCharacterWindow() {
     }
   });
 }
+
+// IPCハンドラー: キャラクタークリック
+ipcMain.on('character-clicked', () => {
+  showMainWindow();
+});
 
 /**
  * メインウィンドウ表示

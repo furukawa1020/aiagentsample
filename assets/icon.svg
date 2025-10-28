@@ -1,26 +1,50 @@
 <svg width="256" height="256" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
-  <!-- 背景円 -->
-  <circle cx="128" cy="128" r="120" fill="url(#grad1)"/>
-  
   <!-- グラデーション定義 -->
   <defs>
-    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#4A90E2;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#357ABD;stop-opacity:1" />
+    <linearGradient id="fuguGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFA07A;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#FF8C69;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FFB090;stop-opacity:1" />
     </linearGradient>
   </defs>
   
-  <!-- 目（左） -->
-  <ellipse cx="90" cy="110" rx="12" ry="16" fill="white"/>
-  <ellipse cx="93" cy="113" rx="8" ry="8" fill="#333"/>
+  <!-- ふぐの体（丸い） -->
+  <ellipse cx="128" cy="128" rx="90" ry="80" fill="url(#fuguGrad)"/>
   
-  <!-- 目（右） -->
-  <ellipse cx="166" cy="110" rx="12" ry="16" fill="white"/>
-  <ellipse cx="169" cy="113" rx="8" ry="8" fill="#333"/>
+  <!-- 斑点 -->
+  <circle cx="90" cy="110" r="12" fill="white" opacity="0.3"/>
+  <circle cx="140" cy="120" r="10" fill="white" opacity="0.3"/>
+  <circle cx="115" cy="135" r="11" fill="white" opacity="0.3"/>
+  <circle cx="155" cy="105" r="8" fill="white" opacity="0.3"/>
   
-  <!-- 口（笑顔） -->
-  <path d="M 90 150 Q 128 180 166 150" stroke="white" stroke-width="6" fill="none" stroke-linecap="round"/>
+  <!-- ヒレ（左） -->
+  <ellipse cx="40" cy="128" rx="25" ry="20" fill="#FF8C69" opacity="0.7" transform="rotate(-30 40 128)"/>
+  
+  <!-- ヒレ（右） -->
+  <ellipse cx="216" cy="128" rx="25" ry="20" fill="#FF8C69" opacity="0.7" transform="rotate(30 216 128)"/>
+  
+  <!-- 尾びれ -->
+  <path d="M 128 195 L 108 230 L 128 220 L 148 230 Z" fill="#FF8C69"/>
+  
+  <!-- 目の白目（左） -->
+  <circle cx="95" cy="105" r="16" fill="white"/>
+  <circle cx="95" cy="105" r="3" fill="#333" stroke="#333" stroke-width="2"/>
+  
+  <!-- 目の白目（右） -->
+  <circle cx="161" cy="105" r="16" fill="white"/>
+  <circle cx="161" cy="105" r="3" fill="#333" stroke="#333" stroke-width="2"/>
+  
+  <!-- 瞳（左） -->
+  <circle cx="98" cy="108" r="8" fill="#333"/>
+  <circle cx="100" cy="106" r="3" fill="white" opacity="0.8"/>
+  
+  <!-- 瞳（右） -->
+  <circle cx="164" cy="108" r="8" fill="#333"/>
+  <circle cx="166" cy="106" r="3" fill="white" opacity="0.8"/>
+  
+  <!-- 口（小さな○） -->
+  <circle cx="128" cy="145" r="12" fill="rgba(255,255,255,0.5)" stroke="#333" stroke-width="3"/>
   
   <!-- ハイライト -->
-  <circle cx="100" cy="80" r="20" fill="white" opacity="0.3"/>
+  <ellipse cx="110" cy="85" rx="25" ry="20" fill="white" opacity="0.25"/>
 </svg>
