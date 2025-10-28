@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8">
@@ -414,11 +414,11 @@
       
       <!-- 会話モード: チャット -->
       <div class="chat-container" id="chat-container" style="display: none;">
-        <button class="chat-close-btn" id="chat-close-btn">×</button>
+        <button class="chat-close-btn" onclick="closeChatMode()">×</button>
         <div class="chat-history" id="chat-history"></div>
         <div class="chat-input-area">
           <input type="text" class="chat-input" id="chat-input" placeholder="話してみて...">
-          <button class="chat-send-btn" id="chat-send-btn">送信</button>
+          <button class="chat-send-btn" onclick="sendChatMessage()">送信</button>
         </div>
       </div>
     </div>
@@ -668,37 +668,6 @@
       }, 300);
     });
     
-        
-    // イベントリスナーを設定
-    document.addEventListener('DOMContentLoaded', () => {
-      const closeBtn = document.getElementById('chat-close-btn');
-      const sendBtn = document.getElementById('chat-send-btn');
-      const chatInput = document.getElementById('chat-input');
-      
-      if (closeBtn) {
-        closeBtn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          closeChatMode();
-        });
-      }
-      
-      if (sendBtn) {
-        sendBtn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          sendChatMessage();
-        });
-      }
-      
-      if (chatInput) {
-        chatInput.addEventListener('keypress', (e) => {
-          if (e.key === 'Enter') {
-            e.preventDefault();
-            sendChatMessage();
-          }
-        });
-      }
-    });
-
     // Enterキーで送信
     document.addEventListener('DOMContentLoaded', () => {
       const chatInput = document.getElementById('chat-input');
@@ -761,5 +730,3 @@
   </script>
 </body>
 </html>
-
-
