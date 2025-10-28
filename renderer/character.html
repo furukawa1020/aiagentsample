@@ -642,12 +642,12 @@
         messageIndex++;
         
         // 次のメッセージ（30-60秒後）
-        const nextDelay = 30000 + Math.random() * 30000;
+        const nextDelay = 5000 + Math.random() * 5000; // 超うざい！5-10秒ごと
         setTimeout(speak, nextDelay);
       };
       
       // 最初のメッセージ（10秒後）
-      setTimeout(speak, 10000);
+      setTimeout(speak, 3000); // 最初は3秒後！
     }
     
     startSpeaking();
@@ -768,6 +768,8 @@
   </script>
 </body>
 </html>
+
+
 
 
 
