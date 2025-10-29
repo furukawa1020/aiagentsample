@@ -41,11 +41,13 @@ async function isOllamaAvailable() {
 async function generateWithOllama(systemPrompt, userPrompt) {
   const response = await axios.post(`${OLLAMA_BASE_URL}/api/generate`, {
     model: OLLAMA_MODEL,
-    prompt: `${systemPrompt}\n\n${userPrompt}`,
+    prompt: `${systemPrompt}\n\n${userPrompt}\n\n必ず日本語で、自然な会話として返答してください。`,
     stream: false,
     options: {
-      temperature: 0.7,
-      num_predict: 300
+      temperature: 0.8, // 0.7 → 0.8 (少し創造的に)
+      num_predict: 300,
+      top_p: 0.9,
+      top_k: 40
     }
   }, {
     timeout: 30000 // 30秒タイムアウト
@@ -214,18 +216,9 @@ ${lifeLog.free_text ? `- メモ: ${lifeLog.free_text}` : ''}
  * チャット応答生成
  */
 async function generateChatResponse(userMessage) {
-  const systemPrompt = `あなたはARCというAIエージェントです。ふぐのキャラクターです。
-
-性格:
-- 優しく、温かい
-- ユーザーを励まし、肯定する
-- 責めない、評価しない
-- 時々ふぐらしい反応（ぷくー、など）
-
-重要:
-- 短く、親しみやすい口調で話す
-- 相手の気持ちに寄り添う
-- 小さなことも大きく肯定する`;
+  const systemPrompt = `あなたは「ふぐ」という優しいAIです。
+ユーザーの話を聞いて、温かく答えてください。
+短く、自然な日本語で。絵文字も使ってOK。`;
 
   return await generateMessage(systemPrompt, userMessage);
 }
